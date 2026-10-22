@@ -1,0 +1,3525 @@
+{
+  "components": [
+    {
+      "fills": [],
+      "height": 22.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 4.0,
+        "main_align": "spaceBetween",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          8.0,
+          0.0,
+          8.0
+        ]
+      },
+      "name": "Albums header",
+      "radius": null,
+      "screen": "Screen 1 · Library",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Albums",
+        "family": "Inter",
+        "size": 11.0,
+        "weight_name": "Semibold"
+      },
+      "type": "frame",
+      "width": 212.0
+    },
+    {
+      "fills": [
+        "#e1e1e3"
+      ],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 6.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          10.0,
+          0.0,
+          10.0
+        ]
+      },
+      "name": "Import",
+      "radius": 6.0,
+      "screen": "Screen 1 · Library",
+      "sizing": {
+        "h": "hug",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Import",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 78.0
+    },
+    {
+      "fills": [
+        "#333335"
+      ],
+      "height": 15.0,
+      "layout": null,
+      "name": "Import",
+      "radius": null,
+      "screen": "Screen 1 · Library",
+      "sizing": {
+        "h": "hug",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Import",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Medium"
+      },
+      "type": "text",
+      "width": 39.0
+    },
+    {
+      "fills": [
+        "#e1e1e3"
+      ],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 6.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          9.0,
+          0.0,
+          9.0
+        ]
+      },
+      "name": "Library popup",
+      "radius": 6.0,
+      "screen": "Screen 1 · Library",
+      "sizing": {
+        "h": "hug",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Photos Library",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 121.0
+    },
+    {
+      "fills": [
+        "#ffffff"
+      ],
+      "height": 847.0,
+      "layout": {
+        "cross_align": "min",
+        "gap": 14.0,
+        "main_align": "min",
+        "mode": "vertical",
+        "padding": [
+          16.0,
+          20.0,
+          16.0,
+          20.0
+        ]
+      },
+      "name": "Main",
+      "radius": null,
+      "screen": "Screen 1 · Library",
+      "sizing": {
+        "h": "fill",
+        "v": "fill"
+      },
+      "text": {
+        "characters": "August 2016",
+        "family": "Inter",
+        "size": 15.0,
+        "weight_name": "Semibold"
+      },
+      "type": "frame",
+      "width": 1207.0
+    },
+    {
+      "fills": [],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 7.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          8.0,
+          0.0,
+          8.0
+        ]
+      },
+      "name": "Memories",
+      "radius": 5.0,
+      "screen": "Screen 1 · Library",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Memories",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Regular"
+      },
+      "type": "frame",
+      "width": 212.0
+    },
+    {
+      "fills": [
+        "#3f3f43"
+      ],
+      "height": 16.0,
+      "layout": null,
+      "name": "Memories",
+      "radius": null,
+      "screen": "Screen 1 · Library",
+      "sizing": {
+        "h": "fill",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Memories",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Regular"
+      },
+      "type": "text",
+      "width": 175.0
+    },
+    {
+      "fills": [],
+      "height": 22.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 9.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "name": "Month header",
+      "radius": null,
+      "screen": "Screen 1 · Library",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "August 2016",
+        "family": "Inter",
+        "size": 15.0,
+        "weight_name": "Semibold"
+      },
+      "type": "frame",
+      "width": 1167.0
+    },
+    {
+      "fills": [],
+      "height": 662.0,
+      "layout": {
+        "cross_align": "min",
+        "gap": 2.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "name": "Photo grid",
+      "radius": null,
+      "screen": "Screen 1 · Library",
+      "sizing": {
+        "h": "fill",
+        "v": "hug"
+      },
+      "text": null,
+      "type": "frame",
+      "width": 1167.0
+    },
+    {
+      "fills": [
+        "#d7d7da"
+      ],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 7.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          8.0,
+          0.0,
+          8.0
+        ]
+      },
+      "name": "Photos",
+      "radius": 5.0,
+      "screen": "Screen 1 · Library",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Photos",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 212.0
+    },
+    {
+      "fills": [
+        "#26262a"
+      ],
+      "height": 16.0,
+      "layout": null,
+      "name": "Photos",
+      "radius": null,
+      "screen": "Screen 1 · Library",
+      "sizing": {
+        "h": "fill",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Photos",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Medium"
+      },
+      "type": "text",
+      "width": 175.0
+    },
+    {
+      "fills": [],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 7.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          8.0,
+          0.0,
+          8.0
+        ]
+      },
+      "name": "Recently Deleted",
+      "radius": 5.0,
+      "screen": "Screen 1 · Library",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Recently Deleted",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Regular"
+      },
+      "type": "frame",
+      "width": 212.0
+    },
+    {
+      "fills": [
+        "#3f3f43"
+      ],
+      "height": 16.0,
+      "layout": null,
+      "name": "Recently Deleted",
+      "radius": null,
+      "screen": "Screen 1 · Library",
+      "sizing": {
+        "h": "fill",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Recently Deleted",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Regular"
+      },
+      "type": "text",
+      "width": 175.0
+    },
+    {
+      "fills": [
+        "#ffffff"
+      ],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 7.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          9.0,
+          0.0,
+          9.0
+        ]
+      },
+      "name": "Search",
+      "radius": 6.0,
+      "screen": "Screen 1 · Library",
+      "sizing": null,
+      "text": {
+        "characters": "Search",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Regular"
+      },
+      "type": "frame",
+      "width": 200.0
+    },
+    {
+      "fills": [
+        "#9a9a9c"
+      ],
+      "height": 15.0,
+      "layout": null,
+      "name": "Search",
+      "radius": null,
+      "screen": "Screen 1 · Library",
+      "sizing": {
+        "h": "fill",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Search",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Regular"
+      },
+      "type": "text",
+      "width": 158.0
+    },
+    {
+      "fills": [],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 0.0,
+        "main_align": "center",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "name": "Share",
+      "radius": null,
+      "screen": "Screen 1 · Library",
+      "sizing": null,
+      "text": null,
+      "type": "frame",
+      "width": 28.0
+    },
+    {
+      "fills": [
+        "#f2f2f3"
+      ],
+      "height": 847.0,
+      "layout": {
+        "cross_align": "min",
+        "gap": 2.0,
+        "main_align": "min",
+        "mode": "vertical",
+        "padding": [
+          10.0,
+          10.0,
+          10.0,
+          10.0
+        ]
+      },
+      "name": "Sidebar",
+      "radius": null,
+      "screen": "Screen 1 · Library",
+      "sizing": {
+        "h": "fixed",
+        "v": "fill"
+      },
+      "text": {
+        "characters": "Photos",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 232.0
+    },
+    {
+      "fills": [
+        "#d3d3d6"
+      ],
+      "height": 847.0,
+      "layout": null,
+      "name": "Sidebar divider",
+      "radius": null,
+      "screen": "Screen 1 · Library",
+      "sizing": {
+        "h": "fixed",
+        "v": "fill"
+      },
+      "text": null,
+      "type": "rectangle",
+      "width": 1.0
+    },
+    {
+      "fills": [
+        "#ededef"
+      ],
+      "height": 52.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 12.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          14.0,
+          0.0,
+          14.0
+        ]
+      },
+      "name": "Titlebar",
+      "radius": null,
+      "screen": "Screen 1 · Library",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Photos Library",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 1440.0
+    },
+    {
+      "fills": [
+        "#d3d3d6"
+      ],
+      "height": 1.0,
+      "layout": null,
+      "name": "Titlebar divider",
+      "radius": null,
+      "screen": "Screen 1 · Library",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": null,
+      "type": "rectangle",
+      "width": 1440.0
+    },
+    {
+      "fills": [
+        "#dcdcde"
+      ],
+      "height": 28.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 2.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          2.0,
+          2.0,
+          2.0,
+          2.0
+        ]
+      },
+      "name": "View switch",
+      "radius": 6.0,
+      "screen": "Screen 1 · Library",
+      "sizing": {
+        "h": "hug",
+        "v": "fixed"
+      },
+      "text": null,
+      "type": "frame",
+      "width": 140.0
+    },
+    {
+      "fills": [
+        "#e1e1e3"
+      ],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 5.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          10.0,
+          0.0,
+          10.0
+        ]
+      },
+      "name": "Add to Album",
+      "radius": 6.0,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "hug",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Add to Album",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Regular"
+      },
+      "type": "frame",
+      "width": 116.0
+    },
+    {
+      "fills": [
+        "#333335"
+      ],
+      "height": 15.0,
+      "layout": null,
+      "name": "Add to Album",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "hug",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Add to Album",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Regular"
+      },
+      "type": "text",
+      "width": 81.0
+    },
+    {
+      "fills": [],
+      "height": 22.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 4.0,
+        "main_align": "spaceBetween",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          8.0,
+          0.0,
+          8.0
+        ]
+      },
+      "name": "Albums header",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Albums",
+        "family": "Inter",
+        "size": 11.0,
+        "weight_name": "Semibold"
+      },
+      "type": "frame",
+      "width": 212.0
+    },
+    {
+      "fills": [],
+      "height": 31.0,
+      "layout": {
+        "cross_align": "min",
+        "gap": 5.0,
+        "main_align": "min",
+        "mode": "vertical",
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "name": "Brightness",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "fill",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Brightness",
+        "family": "Inter",
+        "size": 11.5,
+        "weight_name": "Regular"
+      },
+      "type": "frame",
+      "width": 231.0
+    },
+    {
+      "fills": [
+        "#4a4a4e"
+      ],
+      "height": 14.0,
+      "layout": null,
+      "name": "Brightness",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "hug",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Brightness",
+        "family": "Inter",
+        "size": 11.5,
+        "weight_name": "Regular"
+      },
+      "type": "text",
+      "width": 59.0
+    },
+    {
+      "fills": [],
+      "height": 31.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 3.0,
+        "main_align": "center",
+        "mode": "vertical",
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "name": "Caption",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "hug",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "August 17, 2016 at 6:42 PM",
+        "family": "Inter",
+        "size": 12.0,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 261.0
+    },
+    {
+      "fills": [
+        "#e1e1e3"
+      ],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 5.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          10.0,
+          0.0,
+          10.0
+        ]
+      },
+      "name": "Duplicate",
+      "radius": 6.0,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "hug",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Duplicate",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Regular"
+      },
+      "type": "frame",
+      "width": 76.0
+    },
+    {
+      "fills": [
+        "#333335"
+      ],
+      "height": 15.0,
+      "layout": null,
+      "name": "Duplicate",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "hug",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Duplicate",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Regular"
+      },
+      "type": "text",
+      "width": 56.0
+    },
+    {
+      "fills": [
+        "#0b6fe0"
+      ],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 5.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          10.0,
+          0.0,
+          10.0
+        ]
+      },
+      "name": "Edit",
+      "radius": 6.0,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "hug",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Edit",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 43.0
+    },
+    {
+      "fills": [
+        "#ffffff"
+      ],
+      "height": 15.0,
+      "layout": null,
+      "name": "Edit",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "hug",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Edit",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Medium"
+      },
+      "type": "text",
+      "width": 23.0
+    },
+    {
+      "fills": [],
+      "height": 31.0,
+      "layout": {
+        "cross_align": "min",
+        "gap": 5.0,
+        "main_align": "min",
+        "mode": "vertical",
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "name": "Exposure",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "fill",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Exposure",
+        "family": "Inter",
+        "size": 11.5,
+        "weight_name": "Regular"
+      },
+      "type": "frame",
+      "width": 231.0
+    },
+    {
+      "fills": [
+        "#4a4a4e"
+      ],
+      "height": 14.0,
+      "layout": null,
+      "name": "Exposure",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "hug",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Exposure",
+        "family": "Inter",
+        "size": 11.5,
+        "weight_name": "Regular"
+      },
+      "type": "text",
+      "width": 51.0
+    },
+    {
+      "fills": [],
+      "height": 56.0,
+      "layout": {
+        "cross_align": "min",
+        "gap": 8.0,
+        "main_align": "spaceBetween",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "name": "Filter chips",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "fill",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "None",
+        "family": "Inter",
+        "size": 10.0,
+        "weight_name": "Regular"
+      },
+      "type": "frame",
+      "width": 231.0
+    },
+    {
+      "fills": [
+        "#e1e1e3"
+      ],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 5.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          10.0,
+          0.0,
+          10.0
+        ]
+      },
+      "name": "Info",
+      "radius": 6.0,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "hug",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Info",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Regular"
+      },
+      "type": "frame",
+      "width": 58.0
+    },
+    {
+      "fills": [
+        "#333335"
+      ],
+      "height": 15.0,
+      "layout": null,
+      "name": "Info",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "hug",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Info",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Regular"
+      },
+      "type": "text",
+      "width": 23.0
+    },
+    {
+      "fills": [],
+      "height": 22.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 0.0,
+        "main_align": "center",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "name": "Info",
+      "radius": 4.0,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Info",
+        "family": "Inter",
+        "size": 12.0,
+        "weight_name": "Regular"
+      },
+      "type": "frame",
+      "width": 112.5
+    },
+    {
+      "fills": [
+        "#7b7b7e"
+      ],
+      "height": 15.0,
+      "layout": null,
+      "name": "Info",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "hug",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Info",
+        "family": "Inter",
+        "size": 12.0,
+        "weight_name": "Regular"
+      },
+      "type": "text",
+      "width": 22.0
+    },
+    {
+      "fills": [
+        "#f2f2f3"
+      ],
+      "height": 847.0,
+      "layout": {
+        "cross_align": "min",
+        "gap": 14.0,
+        "main_align": "min",
+        "mode": "vertical",
+        "padding": [
+          12.0,
+          14.0,
+          12.0,
+          14.0
+        ]
+      },
+      "name": "Inspector",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "fixed",
+        "v": "fill"
+      },
+      "text": {
+        "characters": "Adjust",
+        "family": "Inter",
+        "size": 12.0,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 260.0
+    },
+    {
+      "fills": [
+        "#dcdcde"
+      ],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "min",
+        "gap": 2.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          2.0,
+          2.0,
+          2.0,
+          2.0
+        ]
+      },
+      "name": "Inspector tabs",
+      "radius": 6.0,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Adjust",
+        "family": "Inter",
+        "size": 12.0,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 231.0
+    },
+    {
+      "fills": [
+        "#e1e1e3"
+      ],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 6.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          9.0,
+          0.0,
+          9.0
+        ]
+      },
+      "name": "Library popup",
+      "radius": 6.0,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "hug",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Photos Library",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 121.0
+    },
+    {
+      "fills": [
+        "#f7f7f8"
+      ],
+      "height": 847.0,
+      "layout": {
+        "cross_align": "min",
+        "gap": 0.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "name": "Main",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "fill",
+        "v": "fill"
+      },
+      "text": {
+        "characters": "August 17, 2016 at 6:42 PM",
+        "family": "Inter",
+        "size": 12.0,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 1207.0
+    },
+    {
+      "fills": [],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 7.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          8.0,
+          0.0,
+          8.0
+        ]
+      },
+      "name": "Memories",
+      "radius": 5.0,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Memories",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Regular"
+      },
+      "type": "frame",
+      "width": 212.0
+    },
+    {
+      "fills": [
+        "#3f3f43"
+      ],
+      "height": 16.0,
+      "layout": null,
+      "name": "Memories",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "fill",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Memories",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Regular"
+      },
+      "type": "text",
+      "width": 175.0
+    },
+    {
+      "fills": [
+        "#e9e9eb"
+      ],
+      "height": 540.0,
+      "layout": null,
+      "name": "Photo",
+      "radius": 2.0,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": null,
+      "text": null,
+      "type": "frame",
+      "width": 780.0
+    },
+    {
+      "fills": [
+        "#d7d7da"
+      ],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 7.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          8.0,
+          0.0,
+          8.0
+        ]
+      },
+      "name": "Photos",
+      "radius": 5.0,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Photos",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 212.0
+    },
+    {
+      "fills": [
+        "#26262a"
+      ],
+      "height": 16.0,
+      "layout": null,
+      "name": "Photos",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "fill",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Photos",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Medium"
+      },
+      "type": "text",
+      "width": 175.0
+    },
+    {
+      "fills": [],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 7.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          8.0,
+          0.0,
+          8.0
+        ]
+      },
+      "name": "Recently Deleted",
+      "radius": 5.0,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Recently Deleted",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Regular"
+      },
+      "type": "frame",
+      "width": 212.0
+    },
+    {
+      "fills": [
+        "#3f3f43"
+      ],
+      "height": 16.0,
+      "layout": null,
+      "name": "Recently Deleted",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "fill",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Recently Deleted",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Regular"
+      },
+      "type": "text",
+      "width": 175.0
+    },
+    {
+      "fills": [
+        "#e1e1e3"
+      ],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 5.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          10.0,
+          0.0,
+          10.0
+        ]
+      },
+      "name": "Share",
+      "radius": 6.0,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "hug",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Share",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Regular"
+      },
+      "type": "frame",
+      "width": 55.0
+    },
+    {
+      "fills": [
+        "#333335"
+      ],
+      "height": 15.0,
+      "layout": null,
+      "name": "Share",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "hug",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Share",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Regular"
+      },
+      "type": "text",
+      "width": 35.0
+    },
+    {
+      "fills": [
+        "#f2f2f3"
+      ],
+      "height": 847.0,
+      "layout": {
+        "cross_align": "min",
+        "gap": 2.0,
+        "main_align": "min",
+        "mode": "vertical",
+        "padding": [
+          10.0,
+          10.0,
+          10.0,
+          10.0
+        ]
+      },
+      "name": "Sidebar",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "fixed",
+        "v": "fill"
+      },
+      "text": {
+        "characters": "Photos",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 232.0
+    },
+    {
+      "fills": [
+        "#d3d3d6"
+      ],
+      "height": 847.0,
+      "layout": null,
+      "name": "Sidebar divider",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "fixed",
+        "v": "fill"
+      },
+      "text": null,
+      "type": "rectangle",
+      "width": 1.0
+    },
+    {
+      "fills": [
+        "#ededef"
+      ],
+      "height": 52.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 12.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          14.0,
+          0.0,
+          14.0
+        ]
+      },
+      "name": "Titlebar",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Photos Library",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 1440.0
+    },
+    {
+      "fills": [
+        "#d3d3d6"
+      ],
+      "height": 1.0,
+      "layout": null,
+      "name": "Titlebar divider",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": null,
+      "type": "rectangle",
+      "width": 1440.0
+    },
+    {
+      "fills": [
+        "#f7f7f8"
+      ],
+      "height": 847.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 16.0,
+        "main_align": "center",
+        "mode": "vertical",
+        "padding": [
+          26.0,
+          26.0,
+          26.0,
+          26.0
+        ]
+      },
+      "name": "Viewer",
+      "radius": null,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "fill",
+        "v": "fill"
+      },
+      "text": {
+        "characters": "August 17, 2016 at 6:42 PM",
+        "family": "Inter",
+        "size": 12.0,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 947.0
+    },
+    {
+      "fills": [
+        "#e1e1e3"
+      ],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 8.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          9.0,
+          0.0,
+          9.0
+        ]
+      },
+      "name": "Zoom",
+      "radius": 6.0,
+      "screen": "Screen 2 · Photo + Edit",
+      "sizing": {
+        "h": "hug",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "100%",
+        "family": "Inter",
+        "size": 12.0,
+        "weight_name": "Regular"
+      },
+      "type": "frame",
+      "width": 87.0
+    },
+    {
+      "fills": [],
+      "height": 22.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 4.0,
+        "main_align": "spaceBetween",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          8.0,
+          0.0,
+          8.0
+        ]
+      },
+      "name": "Albums header",
+      "radius": null,
+      "screen": "Screen 3 · Memories",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Albums",
+        "family": "Inter",
+        "size": 11.0,
+        "weight_name": "Semibold"
+      },
+      "type": "frame",
+      "width": 212.0
+    },
+    {
+      "fills": [
+        "#e1e1e3"
+      ],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 6.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          10.0,
+          0.0,
+          10.0
+        ]
+      },
+      "name": "Import",
+      "radius": 6.0,
+      "screen": "Screen 3 · Memories",
+      "sizing": {
+        "h": "hug",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Import",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 78.0
+    },
+    {
+      "fills": [
+        "#333335"
+      ],
+      "height": 15.0,
+      "layout": null,
+      "name": "Import",
+      "radius": null,
+      "screen": "Screen 3 · Memories",
+      "sizing": {
+        "h": "hug",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Import",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Medium"
+      },
+      "type": "text",
+      "width": 39.0
+    },
+    {
+      "fills": [
+        "#e1e1e3"
+      ],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 6.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          9.0,
+          0.0,
+          9.0
+        ]
+      },
+      "name": "Library popup",
+      "radius": 6.0,
+      "screen": "Screen 3 · Memories",
+      "sizing": {
+        "h": "hug",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Photos Library",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 121.0
+    },
+    {
+      "fills": [
+        "#ffffff"
+      ],
+      "height": 847.0,
+      "layout": {
+        "cross_align": "min",
+        "gap": 18.0,
+        "main_align": "min",
+        "mode": "vertical",
+        "padding": [
+          24.0,
+          28.0,
+          24.0,
+          28.0
+        ]
+      },
+      "name": "Main",
+      "radius": null,
+      "screen": "Screen 3 · Memories",
+      "sizing": {
+        "h": "fill",
+        "v": "fill"
+      },
+      "text": {
+        "characters": "Summer in Kyoto",
+        "family": "Inter",
+        "size": 24.0,
+        "weight_name": "Semibold"
+      },
+      "type": "frame",
+      "width": 1207.0
+    },
+    {
+      "fills": [
+        "#d7d7da"
+      ],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 7.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          8.0,
+          0.0,
+          8.0
+        ]
+      },
+      "name": "Memories",
+      "radius": 5.0,
+      "screen": "Screen 3 · Memories",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Memories",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 212.0
+    },
+    {
+      "fills": [
+        "#26262a"
+      ],
+      "height": 16.0,
+      "layout": null,
+      "name": "Memories",
+      "radius": null,
+      "screen": "Screen 3 · Memories",
+      "sizing": {
+        "h": "fill",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Memories",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Medium"
+      },
+      "type": "text",
+      "width": 175.0
+    },
+    {
+      "fills": [],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 7.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          8.0,
+          0.0,
+          8.0
+        ]
+      },
+      "name": "Photos",
+      "radius": 5.0,
+      "screen": "Screen 3 · Memories",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Photos",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Regular"
+      },
+      "type": "frame",
+      "width": 212.0
+    },
+    {
+      "fills": [
+        "#3f3f43"
+      ],
+      "height": 16.0,
+      "layout": null,
+      "name": "Photos",
+      "radius": null,
+      "screen": "Screen 3 · Memories",
+      "sizing": {
+        "h": "fill",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Photos",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Regular"
+      },
+      "type": "text",
+      "width": 175.0
+    },
+    {
+      "fills": [],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 7.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          8.0,
+          0.0,
+          8.0
+        ]
+      },
+      "name": "Recently Deleted",
+      "radius": 5.0,
+      "screen": "Screen 3 · Memories",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Recently Deleted",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Regular"
+      },
+      "type": "frame",
+      "width": 212.0
+    },
+    {
+      "fills": [
+        "#3f3f43"
+      ],
+      "height": 16.0,
+      "layout": null,
+      "name": "Recently Deleted",
+      "radius": null,
+      "screen": "Screen 3 · Memories",
+      "sizing": {
+        "h": "fill",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Recently Deleted",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Regular"
+      },
+      "type": "text",
+      "width": 175.0
+    },
+    {
+      "fills": [
+        "#ffffff"
+      ],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 7.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          9.0,
+          0.0,
+          9.0
+        ]
+      },
+      "name": "Search",
+      "radius": 6.0,
+      "screen": "Screen 3 · Memories",
+      "sizing": null,
+      "text": {
+        "characters": "Search",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Regular"
+      },
+      "type": "frame",
+      "width": 200.0
+    },
+    {
+      "fills": [
+        "#9a9a9c"
+      ],
+      "height": 15.0,
+      "layout": null,
+      "name": "Search",
+      "radius": null,
+      "screen": "Screen 3 · Memories",
+      "sizing": {
+        "h": "fill",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Search",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Regular"
+      },
+      "type": "text",
+      "width": 158.0
+    },
+    {
+      "fills": [],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 0.0,
+        "main_align": "center",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "name": "Share",
+      "radius": null,
+      "screen": "Screen 3 · Memories",
+      "sizing": null,
+      "text": null,
+      "type": "frame",
+      "width": 28.0
+    },
+    {
+      "fills": [
+        "#f2f2f3"
+      ],
+      "height": 847.0,
+      "layout": {
+        "cross_align": "min",
+        "gap": 2.0,
+        "main_align": "min",
+        "mode": "vertical",
+        "padding": [
+          10.0,
+          10.0,
+          10.0,
+          10.0
+        ]
+      },
+      "name": "Sidebar",
+      "radius": null,
+      "screen": "Screen 3 · Memories",
+      "sizing": {
+        "h": "fixed",
+        "v": "fill"
+      },
+      "text": {
+        "characters": "Photos",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Regular"
+      },
+      "type": "frame",
+      "width": 232.0
+    },
+    {
+      "fills": [
+        "#d3d3d6"
+      ],
+      "height": 847.0,
+      "layout": null,
+      "name": "Sidebar divider",
+      "radius": null,
+      "screen": "Screen 3 · Memories",
+      "sizing": {
+        "h": "fixed",
+        "v": "fill"
+      },
+      "text": null,
+      "type": "rectangle",
+      "width": 1.0
+    },
+    {
+      "fills": [
+        "#ededef"
+      ],
+      "height": 52.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 12.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          14.0,
+          0.0,
+          14.0
+        ]
+      },
+      "name": "Titlebar",
+      "radius": null,
+      "screen": "Screen 3 · Memories",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Photos Library",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 1440.0
+    },
+    {
+      "fills": [
+        "#d3d3d6"
+      ],
+      "height": 1.0,
+      "layout": null,
+      "name": "Titlebar divider",
+      "radius": null,
+      "screen": "Screen 3 · Memories",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": null,
+      "type": "rectangle",
+      "width": 1440.0
+    },
+    {
+      "fills": [
+        "#dcdcde"
+      ],
+      "height": 28.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 2.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          2.0,
+          2.0,
+          2.0,
+          2.0
+        ]
+      },
+      "name": "View switch",
+      "radius": 6.0,
+      "screen": "Screen 3 · Memories",
+      "sizing": {
+        "h": "hug",
+        "v": "fixed"
+      },
+      "text": null,
+      "type": "frame",
+      "width": 140.0
+    },
+    {
+      "fills": [],
+      "height": 22.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 4.0,
+        "main_align": "spaceBetween",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          8.0,
+          0.0,
+          8.0
+        ]
+      },
+      "name": "Albums header",
+      "radius": null,
+      "screen": "Screen 4 · Months",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Albums",
+        "family": "Inter",
+        "size": 11.0,
+        "weight_name": "Semibold"
+      },
+      "type": "frame",
+      "width": 212.0
+    },
+    {
+      "fills": [
+        "#e1e1e3"
+      ],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 6.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          10.0,
+          0.0,
+          10.0
+        ]
+      },
+      "name": "Import",
+      "radius": 6.0,
+      "screen": "Screen 4 · Months",
+      "sizing": {
+        "h": "hug",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Import",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 78.0
+    },
+    {
+      "fills": [
+        "#333335"
+      ],
+      "height": 15.0,
+      "layout": null,
+      "name": "Import",
+      "radius": null,
+      "screen": "Screen 4 · Months",
+      "sizing": {
+        "h": "hug",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Import",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Medium"
+      },
+      "type": "text",
+      "width": 39.0
+    },
+    {
+      "fills": [
+        "#e1e1e3"
+      ],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 6.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          9.0,
+          0.0,
+          9.0
+        ]
+      },
+      "name": "Library popup",
+      "radius": 6.0,
+      "screen": "Screen 4 · Months",
+      "sizing": {
+        "h": "hug",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Photos Library",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 121.0
+    },
+    {
+      "fills": [
+        "#ffffff"
+      ],
+      "height": 847.0,
+      "layout": {
+        "cross_align": "min",
+        "gap": 16.0,
+        "main_align": "min",
+        "mode": "vertical",
+        "padding": [
+          24.0,
+          28.0,
+          24.0,
+          28.0
+        ]
+      },
+      "name": "Main",
+      "radius": null,
+      "screen": "Screen 4 · Months",
+      "sizing": {
+        "h": "fill",
+        "v": "fill"
+      },
+      "text": {
+        "characters": "2016",
+        "family": "Inter",
+        "size": 16.0,
+        "weight_name": "Semibold"
+      },
+      "type": "frame",
+      "width": 1207.0
+    },
+    {
+      "fills": [],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 7.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          8.0,
+          0.0,
+          8.0
+        ]
+      },
+      "name": "Memories",
+      "radius": 5.0,
+      "screen": "Screen 4 · Months",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Memories",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Regular"
+      },
+      "type": "frame",
+      "width": 212.0
+    },
+    {
+      "fills": [
+        "#3f3f43"
+      ],
+      "height": 16.0,
+      "layout": null,
+      "name": "Memories",
+      "radius": null,
+      "screen": "Screen 4 · Months",
+      "sizing": {
+        "h": "fill",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Memories",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Regular"
+      },
+      "type": "text",
+      "width": 175.0
+    },
+    {
+      "fills": [
+        "#d7d7da"
+      ],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 7.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          8.0,
+          0.0,
+          8.0
+        ]
+      },
+      "name": "Photos",
+      "radius": 5.0,
+      "screen": "Screen 4 · Months",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Photos",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 212.0
+    },
+    {
+      "fills": [
+        "#26262a"
+      ],
+      "height": 16.0,
+      "layout": null,
+      "name": "Photos",
+      "radius": null,
+      "screen": "Screen 4 · Months",
+      "sizing": {
+        "h": "fill",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Photos",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Medium"
+      },
+      "type": "text",
+      "width": 175.0
+    },
+    {
+      "fills": [],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 7.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          8.0,
+          0.0,
+          8.0
+        ]
+      },
+      "name": "Recently Deleted",
+      "radius": 5.0,
+      "screen": "Screen 4 · Months",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Recently Deleted",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Regular"
+      },
+      "type": "frame",
+      "width": 212.0
+    },
+    {
+      "fills": [
+        "#3f3f43"
+      ],
+      "height": 16.0,
+      "layout": null,
+      "name": "Recently Deleted",
+      "radius": null,
+      "screen": "Screen 4 · Months",
+      "sizing": {
+        "h": "fill",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Recently Deleted",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Regular"
+      },
+      "type": "text",
+      "width": 175.0
+    },
+    {
+      "fills": [
+        "#ffffff"
+      ],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 7.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          9.0,
+          0.0,
+          9.0
+        ]
+      },
+      "name": "Search",
+      "radius": 6.0,
+      "screen": "Screen 4 · Months",
+      "sizing": null,
+      "text": {
+        "characters": "Search",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Regular"
+      },
+      "type": "frame",
+      "width": 200.0
+    },
+    {
+      "fills": [
+        "#9a9a9c"
+      ],
+      "height": 15.0,
+      "layout": null,
+      "name": "Search",
+      "radius": null,
+      "screen": "Screen 4 · Months",
+      "sizing": {
+        "h": "fill",
+        "v": "hug"
+      },
+      "text": {
+        "characters": "Search",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Regular"
+      },
+      "type": "text",
+      "width": 158.0
+    },
+    {
+      "fills": [],
+      "height": 26.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 0.0,
+        "main_align": "center",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "name": "Share",
+      "radius": null,
+      "screen": "Screen 4 · Months",
+      "sizing": null,
+      "text": null,
+      "type": "frame",
+      "width": 28.0
+    },
+    {
+      "fills": [
+        "#f2f2f3"
+      ],
+      "height": 847.0,
+      "layout": {
+        "cross_align": "min",
+        "gap": 2.0,
+        "main_align": "min",
+        "mode": "vertical",
+        "padding": [
+          10.0,
+          10.0,
+          10.0,
+          10.0
+        ]
+      },
+      "name": "Sidebar",
+      "radius": null,
+      "screen": "Screen 4 · Months",
+      "sizing": {
+        "h": "fixed",
+        "v": "fill"
+      },
+      "text": {
+        "characters": "Photos",
+        "family": "Inter",
+        "size": 13.0,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 232.0
+    },
+    {
+      "fills": [
+        "#d3d3d6"
+      ],
+      "height": 847.0,
+      "layout": null,
+      "name": "Sidebar divider",
+      "radius": null,
+      "screen": "Screen 4 · Months",
+      "sizing": {
+        "h": "fixed",
+        "v": "fill"
+      },
+      "text": null,
+      "type": "rectangle",
+      "width": 1.0
+    },
+    {
+      "fills": [
+        "#ededef"
+      ],
+      "height": 52.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 12.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          0.0,
+          14.0,
+          0.0,
+          14.0
+        ]
+      },
+      "name": "Titlebar",
+      "radius": null,
+      "screen": "Screen 4 · Months",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": {
+        "characters": "Photos Library",
+        "family": "Inter",
+        "size": 12.5,
+        "weight_name": "Medium"
+      },
+      "type": "frame",
+      "width": 1440.0
+    },
+    {
+      "fills": [
+        "#d3d3d6"
+      ],
+      "height": 1.0,
+      "layout": null,
+      "name": "Titlebar divider",
+      "radius": null,
+      "screen": "Screen 4 · Months",
+      "sizing": {
+        "h": "fill",
+        "v": "fixed"
+      },
+      "text": null,
+      "type": "rectangle",
+      "width": 1440.0
+    },
+    {
+      "fills": [
+        "#dcdcde"
+      ],
+      "height": 28.0,
+      "layout": {
+        "cross_align": "center",
+        "gap": 2.0,
+        "main_align": "min",
+        "mode": "horizontal",
+        "padding": [
+          2.0,
+          2.0,
+          2.0,
+          2.0
+        ]
+      },
+      "name": "View switch",
+      "radius": 6.0,
+      "screen": "Screen 4 · Months",
+      "sizing": {
+        "h": "hug",
+        "v": "fixed"
+      },
+      "text": null,
+      "type": "frame",
+      "width": 140.0
+    }
+  ],
+  "corner_radii": [
+    {
+      "count": 39,
+      "value": "5,5,5,5"
+    },
+    {
+      "count": 28,
+      "value": "4,4,4,4"
+    },
+    {
+      "count": 22,
+      "value": "6,6,6,6"
+    },
+    {
+      "count": 14,
+      "value": "1,1,1,1"
+    },
+    {
+      "count": 4,
+      "value": "10,10,10,10"
+    },
+    {
+      "count": 2,
+      "value": "17,17,17,17"
+    },
+    {
+      "count": 1,
+      "value": "2,2,2,2"
+    },
+    {
+      "count": 1,
+      "value": "31,31,31,31"
+    }
+  ],
+  "flows": [
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "All Photos",
+      "screen": "Screen 4 · Months",
+      "to": "Screen 1 · Library",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photos",
+      "screen": "Screen 4 · Months",
+      "to": "Screen 1 · Library",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Memories",
+      "screen": "Screen 4 · Months",
+      "to": "Screen 3 · Memories",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 1",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 2",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 3",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 4",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 5",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 6",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 7",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 8",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Months",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 4 · Months",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 9",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 10",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 11",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 12",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Years",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 4 · Months",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 13",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 14",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 15",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 16",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 17",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 18",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 19",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 20",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 21",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 22",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 23",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 24",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 25",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 26",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 27",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photo 28",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 2 · Photo + Edit",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photos",
+      "screen": "Screen 2 · Photo + Edit",
+      "to": "Screen 1 · Library",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Memories",
+      "screen": "Screen 2 · Photo + Edit",
+      "to": "Screen 3 · Memories",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Memories",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 3 · Memories",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Shared Albums",
+      "screen": "Screen 1 · Library",
+      "to": "Screen 3 · Memories",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Done",
+      "screen": "Screen 2 · Photo + Edit",
+      "to": "Screen 1 · Library",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Months",
+      "screen": "Screen 3 · Memories",
+      "to": "Screen 4 · Months",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    },
+    {
+      "duration_ms": 220,
+      "easing": "easeOut",
+      "from": "Photos",
+      "screen": "Screen 3 · Memories",
+      "to": "Screen 1 · Library",
+      "transition": "dissolve",
+      "trigger": "onClick"
+    }
+  ],
+  "layout": {
+    "child_sizing": [
+      {
+        "count": 112,
+        "value": "hug/hug"
+      },
+      {
+        "count": 95,
+        "value": "fill/fixed"
+      },
+      {
+        "count": 55,
+        "value": "fill/fill"
+      },
+      {
+        "count": 49,
+        "value": "fill/hug"
+      },
+      {
+        "count": 17,
+        "value": "fixed/fixed"
+      },
+      {
+        "count": 17,
+        "value": "hug/fixed"
+      },
+      {
+        "count": 9,
+        "value": "fixed/fill"
+      }
+    ],
+    "gap_tenths": [
+      {
+        "count": 65,
+        "value": 0
+      },
+      {
+        "count": 39,
+        "value": 70
+      },
+      {
+        "count": 23,
+        "value": 20
+      },
+      {
+        "count": 13,
+        "value": 50
+      },
+      {
+        "count": 11,
+        "value": 60
+      },
+      {
+        "count": 10,
+        "value": 40
+      },
+      {
+        "count": 6,
+        "value": 80
+      },
+      {
+        "count": 4,
+        "value": 30
+      },
+      {
+        "count": 4,
+        "value": 120
+      },
+      {
+        "count": 2,
+        "value": 90
+      },
+      {
+        "count": 2,
+        "value": 140
+      },
+      {
+        "count": 2,
+        "value": 160
+      },
+      {
+        "count": 1,
+        "value": 180
+      }
+    ],
+    "modes": [
+      {
+        "count": 140,
+        "value": "horizontal"
+      },
+      {
+        "count": 42,
+        "value": "vertical"
+      }
+    ],
+    "paddings": [
+      {
+        "count": 108,
+        "value": "0,0,0,0"
+      },
+      {
+        "count": 40,
+        "value": "0,8,0,8"
+      },
+      {
+        "count": 8,
+        "value": "0,10,0,10"
+      },
+      {
+        "count": 8,
+        "value": "0,9,0,9"
+      },
+      {
+        "count": 5,
+        "value": "0,14,0,14"
+      },
+      {
+        "count": 4,
+        "value": "10,10,10,10"
+      },
+      {
+        "count": 4,
+        "value": "2,2,2,2"
+      },
+      {
+        "count": 2,
+        "value": "24,28,24,28"
+      },
+      {
+        "count": 1,
+        "value": "12,14,12,14"
+      },
+      {
+        "count": 1,
+        "value": "16,20,16,20"
+      },
+      {
+        "count": 1,
+        "value": "26,26,26,26"
+      }
+    ]
+  },
+  "palette": [
+    {
+      "count": 92,
+      "value": "gradient:gradient"
+    },
+    {
+      "count": 62,
+      "value": "#ffffff"
+    },
+    {
+      "count": 45,
+      "value": "#e9e9eb"
+    },
+    {
+      "count": 32,
+      "value": "#3f3f43"
+    },
+    {
+      "count": 24,
+      "value": "#fff7e0"
+    },
+    {
+      "count": 20,
+      "value": "#8a8a8e"
+    },
+    {
+      "count": 15,
+      "value": "#fff4d2"
+    },
+    {
+      "count": 13,
+      "value": "#333335"
+    },
+    {
+      "count": 12,
+      "value": "#2e3646"
+    },
+    {
+      "count": 12,
+      "value": "#3a4e60"
+    },
+    {
+      "count": 12,
+      "value": "#41586c"
+    },
+    {
+      "count": 12,
+      "value": "#5b5b5f"
+    },
+    {
+      "count": 12,
+      "value": "#e1e1e3"
+    },
+    {
+      "count": 9,
+      "value": "#0b6fe0"
+    },
+    {
+      "count": 8,
+      "value": "#2c2c2e"
+    },
+    {
+      "count": 8,
+      "value": "#372e48"
+    },
+    {
+      "count": 8,
+      "value": "#4a4a4e"
+    },
+    {
+      "count": 8,
+      "value": "#d3d3d6"
+    },
+    {
+      "count": 7,
+      "value": "#231c31"
+    },
+    {
+      "count": 7,
+      "value": "#7b7b7e"
+    },
+    {
+      "count": 7,
+      "value": "#c9c9cc"
+    },
+    {
+      "count": 6,
+      "value": "#0c1422"
+    },
+    {
+      "count": 6,
+      "value": "#39607a"
+    },
+    {
+      "count": 6,
+      "value": "#432c47"
+    },
+    {
+      "count": 6,
+      "value": "#6c92a6"
+    },
+    {
+      "count": 6,
+      "value": "#f3e7c6"
+    },
+    {
+      "count": 5,
+      "value": "#2b2338"
+    },
+    {
+      "count": 5,
+      "value": "#31294a"
+    },
+    {
+      "count": 5,
+      "value": "#5fa6bc"
+    },
+    {
+      "count": 5,
+      "value": "#8fb8c9"
+    },
+    {
+      "count": 5,
+      "value": "#f2f2f3"
+    },
+    {
+      "count": 5,
+      "value": "#ffefcd"
+    },
+    {
+      "count": 5,
+      "value": "#fff6dc"
+    },
+    {
+      "count": 4,
+      "value": "#26262a"
+    },
+    {
+      "count": 4,
+      "value": "#28c840"
+    },
+    {
+      "count": 4,
+      "value": "#2a4a30"
+    },
+    {
+      "count": 4,
+      "value": "#2c1d33"
+    },
+    {
+      "count": 4,
+      "value": "#2f5b39"
+    },
+    {
+      "count": 4,
+      "value": "#376b44"
+    },
+    {
+      "count": 4,
+      "value": "#7a5168"
+    },
+    {
+      "count": 4,
+      "value": "#8e8e92"
+    },
+    {
+      "count": 4,
+      "value": "#d7d7da"
+    },
+    {
+      "count": 4,
+      "value": "#dcdcde"
+    },
+    {
+      "count": 4,
+      "value": "#ededef"
+    },
+    {
+      "count": 4,
+      "value": "#febc2e"
+    },
+    {
+      "count": 4,
+      "value": "#ff5f57"
+    },
+    {
+      "count": 3,
+      "value": "#000000"
+    },
+    {
+      "count": 3,
+      "value": "#216c88"
+    },
+    {
+      "count": 3,
+      "value": "#9a9a9c"
+    },
+    {
+      "count": 3,
+      "value": "#fff3cf"
+    },
+    {
+      "count": 2,
+      "value": "#274a2f"
+    },
+    {
+      "count": 2,
+      "value": "#4e7690"
+    },
+    {
+      "count": 2,
+      "value": "#d6d6d8"
+    },
+    {
+      "count": 2,
+      "value": "#f7f7f8"
+    },
+    {
+      "count": 1,
+      "value": "#2e7e99"
+    },
+    {
+      "count": 1,
+      "value": "#3a8fa6"
+    },
+    {
+      "count": 1,
+      "value": "#5a3c56"
+    },
+    {
+      "count": 1,
+      "value": "#5c5c5f"
+    },
+    {
+      "count": 1,
+      "value": "#d9b08f"
+    },
+    {
+      "count": 1,
+      "value": "#e9c6a9"
+    },
+    {
+      "count": 1,
+      "value": "#f7d9c0"
+    },
+    {
+      "count": 1,
+      "value": "#ffe9c0"
+    }
+  ],
+  "screens": [
+    {
+      "fills": [
+        "#ffffff"
+      ],
+      "height": 900.0,
+      "name": "Screen 1 · Library",
+      "width": 1440.0
+    },
+    {
+      "fills": [
+        "#ffffff"
+      ],
+      "height": 900.0,
+      "name": "Screen 2 · Photo + Edit",
+      "width": 1440.0
+    },
+    {
+      "fills": [
+        "#ffffff"
+      ],
+      "height": 900.0,
+      "name": "Screen 3 · Memories",
+      "width": 1440.0
+    },
+    {
+      "fills": [
+        "#ffffff"
+      ],
+      "height": 900.0,
+      "name": "Screen 4 · Months",
+      "width": 1440.0
+    }
+  ],
+  "source": {
+    "document_name": "osx-photos-prototype",
+    "format": "figcraft",
+    "nodes": 750,
+    "path": "../design/osx-photos-prototype.figcraft",
+    "sha256": "dfc2ae67f24c63db2404d93fa22298f46e3fbef5bb4d6e8b459f9775a34f1f14",
+    "version": 1
+  },
+  "type_scale": [
+    {
+      "count": 3,
+      "family": "Inter",
+      "size": 12.0,
+      "weight_name": "Medium"
+    },
+    {
+      "count": 8,
+      "family": "Inter",
+      "size": 12.5,
+      "weight_name": "Medium"
+    },
+    {
+      "count": 4,
+      "family": "Inter",
+      "size": 13.0,
+      "weight_name": "Medium"
+    },
+    {
+      "count": 5,
+      "family": "Inter",
+      "size": 10.0,
+      "weight_name": "Regular"
+    },
+    {
+      "count": 23,
+      "family": "Inter",
+      "size": 11.0,
+      "weight_name": "Regular"
+    },
+    {
+      "count": 10,
+      "family": "Inter",
+      "size": 11.5,
+      "weight_name": "Regular"
+    },
+    {
+      "count": 3,
+      "family": "Inter",
+      "size": 12.0,
+      "weight_name": "Regular"
+    },
+    {
+      "count": 7,
+      "family": "Inter",
+      "size": 12.5,
+      "weight_name": "Regular"
+    },
+    {
+      "count": 32,
+      "family": "Inter",
+      "size": 13.0,
+      "weight_name": "Regular"
+    },
+    {
+      "count": 6,
+      "family": "Inter",
+      "size": 11.0,
+      "weight_name": "Semibold"
+    },
+    {
+      "count": 13,
+      "family": "Inter",
+      "size": 14.0,
+      "weight_name": "Semibold"
+    },
+    {
+      "count": 4,
+      "family": "Inter",
+      "size": 15.0,
+      "weight_name": "Semibold"
+    },
+    {
+      "count": 1,
+      "family": "Inter",
+      "size": 16.0,
+      "weight_name": "Semibold"
+    },
+    {
+      "count": 1,
+      "family": "Inter",
+      "size": 24.0,
+      "weight_name": "Semibold"
+    }
+  ]
+}

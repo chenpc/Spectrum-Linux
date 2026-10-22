@@ -1,0 +1,91 @@
+{
+  "name": "Spectrum theme",
+  "source": "osx-photos-prototype.figcraft",
+  "font": {
+    "family": "Inter",
+    "license": "OFL",
+    "bundled": false
+  },
+  "color": {
+    "window": "#ffffff",
+    "titlebar": "#ededef",
+    "sidebar": "#f2f2f3",
+    "detail": "#f7f7f8",
+    "hairline": "#d3d3d6",
+    "divider": "#d6d6d8",
+    "text": "#2c2c2e",
+    "ink": "#333335",
+    "label": "#4a4a4e",
+    "secondary": "#8a8a8e",
+    "muted": "#7b7b7e",
+    "row": "#3f3f43",
+    "row_selected_text": "#26262a",
+    "accent": "#0b6fe0",
+    "track": "#c9c9cc",
+    "control": "#e1e1e3",
+    "selected": "#d7d7da",
+    "segmented": "#dcdcde",
+    "tile": "#e9e9eb",
+    "on_accent": "#ffffff",
+    "scrim": "#ffffff@60",
+    "title_text": "#2c2c2e",
+    "section_text": "#8a8a8e",
+    "caption_text": "#4a4a4e",
+    "meta_text": "#8a8a8e"
+  },
+  "radius": {
+    "window": 10,
+    "control": 6,
+    "segment": 4,
+    "pill": 4,
+    "row": 5,
+    "tile": 2,
+    "knob": 6,
+    "circle": 17
+  },
+  "size": {
+    "titlebar_height": 52,
+    "sidebar_width": 232,
+    "inspector_width": 260,
+    "control_height": 26,
+    "segment_height": 22,
+    "row_height": 26,
+    "tile_size": 164,
+    "grid_gap": 2,
+    "nav_button": 34
+  },
+  "space": {
+    "titlebar_inline": 14,
+    "sidebar_padding": 10,
+    "inspector_padding": 12,
+    "inspector_inline": 14,
+    "viewer_padding": 26,
+    "grid_gap": 2,
+    "row_inline": 8,
+    "control_inline": 9,
+    "sidebar_gap": 2,
+    "section_gap": 14,
+    "main_inline": 20,
+    "main_padding": 16
+  },
+  "type": {
+    "title_size": 15,
+    "title_weight": 600,
+    "row_size": 13,
+    "row_weight": 400,
+    "control_size": 12.5,
+    "segment_size": 12,
+    "caption_size": 12,
+    "caption_weight": 500,
+    "section_size": 11,
+    "section_weight": 600,
+    "meta_size": 11,
+    "meta_weight": 400,
+    "chip_size": 10
+  },
+  "motion": {
+    "transition": "dissolve",
+    "duration_ms": 220,
+    "easing": "ease-out"
+  }
+}

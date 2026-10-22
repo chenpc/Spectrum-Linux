@@ -1,0 +1,3 @@
+# Clippy: `unwrap`/`expect`/`panic` are allowed in tests only.
+# Production crate roots carry `#![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic)]`.
+allow-unwrap-in-tests = true

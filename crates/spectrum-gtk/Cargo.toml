@@ -1,0 +1,20 @@
+[package]
+name = "spectrum-gtk"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+gtk4 = { version = "0.11", features = ["v4_12"] }
+gdk4 = "0.11"
+gdk-pixbuf = "0.22"
+gsk4 = "0.11"
+gio = "0.22"
+glib = "0.22"
+graphene = { package = "graphene-rs", version = "0.22" }
+libglycin-rebind = "0.1"
+libglycin-gtk4-rebind = "0.1"
+spectrum-core = { path = "../spectrum-core" }
+
+[[bin]]
+name = "spectrum-gtk"
+path = "src/main.rs"

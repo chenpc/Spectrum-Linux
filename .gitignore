@@ -1,0 +1,10 @@
+target/
+reference/
+.toolchain/
+
+*.rdb
+.env
+
+# kittest snapshot artifacts: committed baselines are *.png, failing runs write diffs
+crates/**/tests/snapshots/*.diff.png
+crates/**/tests/snapshots/*.new.png
