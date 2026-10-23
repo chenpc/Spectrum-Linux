@@ -12,7 +12,7 @@
 ## 功能缺口（F）
 
 ### F01 — 資料夾清單持久化
-- [ ] 未完成
+- [x] 完成（2026-10-23）：`crates/spectrum-core/src/library_store.rs` + `AppState::{set_store, restore_store, save_store}`；`folder.add`/`folder.open`/`folder.remove` 成功後立即寫檔，啟動時載入並 rescan。測試：`crates/spectrum-core/tests/library_store.rs`(6)、`crates/spectrum-app/tests/store.rs`(6)。
 - macOS：`Services/BookmarkService.swift`(98) 用 security-scoped bookmark 記住資料夾。
 - 現況：`Library.folders`（`model.rs`）只在記憶體，`model.rs` 裡沒有任何 save/load → **重開程式資料夾清單就空了**，要重新 Add folder。
 - 要動：把 `folders` 寫成設定檔（例 `~/.config/spectrum/library.json`），啟動時載入並逐檔驗證路徑還在；加 `folder.save` 不需要（`folder.add`/`folder.remove` 觸發寫入即可）。

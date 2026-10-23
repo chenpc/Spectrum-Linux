@@ -82,6 +82,9 @@ pub struct AppState {
     thumb_asked: HashSet<std::path::PathBuf>,
     /// Files the loader refused (a video, an unknown format). They stay placeholders.
     thumb_failed: HashSet<std::path::PathBuf>,
+    /// Where the folder list is persisted. `None` means "do not persist", which is what a test gets
+    /// unless it sets a store path explicitly.
+    store_path: Option<std::path::PathBuf>,
 }
 
 impl AppState {
@@ -101,6 +104,7 @@ impl AppState {
             frame: 0,
             quit: false,
             inbox: None,
+            store_path: None,
         }
     }
 
@@ -123,6 +127,66 @@ impl AppState {
         self.thumb_worker = Some(worker);
     }
 
+    /// Point the folder list at a file. `None` disables persistence (the test default).
+    pub fn set_store(&mut self, path: Option<std::path::PathBuf>) {
+        self.store_path = path;
+    }
+
+    /// The list index of a folder path, or the active folder when the path is not listed.
+    pub fn folder_index(&self, path: &std::path::Path) -> usize {
+        self.lib
+            .folders
+            .iter()
+            .position(|slot| slot.path == path)
+            .unwrap_or(self.lib.active)
+    }
+
+    pub fn store_path(&self) -> Option<&std::path::Path> {
+        self.store_path.as_deref()
+    }
+
+    /// Read the persisted folder list. A folder that is no longer a directory is dropped from the
+    /// list and named in the notice, so an unmounted volume shows as a message rather than an empty
+    /// folder. An empty store leaves the current list alone: the first run keeps whatever the
+    /// command line handed us.
+    pub fn restore_store(&mut self) -> Result<spectrum_core::Saved, String> {
+        let Some(path) = self.store_path.clone() else {
+            return Ok(spectrum_core::Saved::default());
+        };
+        let saved = spectrum_core::load_library_store(&path)?;
+        if saved.folders.is_empty() {
+            return Ok(saved);
+        }
+        spectrum_core::apply_library_store(&mut self.lib, &saved);
+        if !saved.dropped.is_empty() {
+            let names: Vec<String> = saved
+                .dropped
+                .iter()
+                .take(3)
+                .map(|p| p.display().to_string())
+                .collect();
+            let more = saved.dropped.len().saturating_sub(names.len()).to_string();
+            self.notice = Some(format!(
+                "Skipped {} folder no longer on disk: {}{}",
+                saved.dropped.len(),
+                names.join(", "),
+                if saved.dropped.len() > names.len() {
+                    format!(" (+{more})")
+                } else {
+                    String::new()
+                }
+            ));
+        }
+        Ok(saved)
+    }
+
+    /// Persist the folder list. Returns the error text when the write failed, so the caller can put
+    /// it in the status bar instead of losing the change silently.
+    pub fn save_store(&mut self) -> Option<String> {
+        let path = self.store_path.clone()?;
+        spectrum_core::save_library_store(&path, &self.lib.folders, self.lib.active).err()
+    }
+
     pub fn set_control(&mut self, inbox: Inbox) {
         self.inbox = Some(inbox);
     }
@@ -131,6 +195,13 @@ impl AppState {
         match dispatch(&mut self.lib, id, &args) {
             Ok(_) => {
                 self.notice = None;
+                // The folder list is the one thing that has to survive a restart, so a change to it
+                // is written as it happens rather than on quit.
+                if id.starts_with("folder.") {
+                    if let Some(err) = self.save_store() {
+                        self.notice = Some(err);
+                    }
+                }
                 true
             }
             Err(err) => {

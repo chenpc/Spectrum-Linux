@@ -1079,3 +1079,10 @@ UI：`Ui` 新增 `import_list`、`import_scroll`、`import_model`、`import_rows
 把 macOS 參考版（11,899 行 Swift）跟 Rust 版（core 4,550 + app 2,477）逐模組對過，寫成 `docs/backlog.md`：**F01–F19 功能缺口**、**Q01–Q07 測試與紀律缺口**，每項附「MacOS 參考規模／現況證據／要動什麼」。證據用的是 `grep -c crate::module`（例如 `nav`/`search`/`import`/`clipboard`/`undo`/`folder_cache` 在 core 與 app 都是 0 處使用 — 實作在、沒人接）與 `command.rs` 的命令清單（沒有 `edit.undo`/`edit.redo`/`edit.flip`/`clip.*`）。
 同步修了三處文件與事實不符的地方：`docs/testing.md` 的分層表加「狀態」欄（L3/L6/L7/L8 明確標未做）、第四節實作順序改成實際進度（`theme.rs`/`widgets.rs` 早已接進完整畫面）、`cargo xtask ci` 目前只做 fmt/token/snapshot 三步而非 L0–L8；`AGENTS.md` 的 registry 規則例子改掉不存在的 `panel:inspector`（它只在 `ids-on-selection`），並把「無指定任務時的起點」從 testing.md 改成 `docs/backlog.md`。另外把文件裡混進的簡體字統一回繁體。
 驗證：`cargo fmt --all --check`、`cargo xtask ci` 全綠、`cargo test --workspace` 全部 suite 0 failed。
+
+## 2026-10-23 — F01：資料夾清單持久化
+**問題：** `Library.folders` 只在記憶體，重開程式後側欄全空，要重新 Add folder。
+**根因與做法：** 新增 `crates/spectrum-core/src/library_store.rs`：`{version, active, folders:[{path,count}]}` 寫在 `<config>/spectrum/library.json`（`$SPECTRUM_LIBRARY_STORE` > `$XDG_CONFIG_HOME` > `$HOME/.config`）；`load` 逐檔檢查 `is_dir()`，不見的放進 `dropped`、重複與空路徑折疊、`active` 夾到存活清單；`save` 先寫 `.tmp` 再 rename，避免寫到一半崩掉把檔案寫壞。版本不符或 JSON 壞掉時**回錯誤**，不当成空清單（否则使用者的資料夾會被無聲清掉）。App 端 `AppState::{set_store, restore_store, save_store}`，`run()` 在 `folder.*` 成功後立刻寫檔，寫檔失敗把錯誤進狀態列；`restore_store` 對「不見的資料夾」產生 `Skipped N folder no longer on disk: …` 訊息。命令列给的資料夾永遠會被 add + open（已在清單裡就只 open）。
+**修改的檔案：** `crates/spectrum-core/src/{library_store.rs,lib.rs}`、`crates/spectrum-app/src/{app.rs,main.rs}`、`docs/backlog.md`。
+**測試：** `crates/spectrum-core/tests/library_store.rs` 6 條（round-trip、missing drop+active clamp、duplicate/blank collapse、malformed+錯版本回錯誤且檔案不被改、apply 會 rescan 所以 99 這種舊 count 不被相信、save 自建父目錄）；`crates/spectrum-app/tests/store.rs` 6 條（add 立即寫檔、重啟讀回並 rescan 出真實 count、消失的資料夾被報出來、壞檔保留命令列資料夾、remove  rewrite 且不刪檔案、沒設 store path 就不寫檔）。`cargo test --workspace` 256 通過、clippy `-D warnings` 0、`xtask ci` 綠。
+**注意：** 測試自己寫 raw JSON 時要先建 `<dir>/spectrum/` 目錄（`save` 會自建，手寫不會）；第一版就踩了這個（3 條 `NotFound`）。

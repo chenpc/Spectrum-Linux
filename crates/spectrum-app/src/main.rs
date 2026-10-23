@@ -55,7 +55,28 @@ fn main() -> eframe::Result {
         }
     }
 
-    let mut state = AppState::new(folder.unwrap_or_else(|| PathBuf::from(".")));
+    let mut state = AppState::new(folder.clone().unwrap_or_else(|| PathBuf::from(".")));
+    state.set_store(spectrum_core::library_store::default_path());
+    match state.restore_store() {
+        Ok(saved) => {
+            if !saved.folders.is_empty() {
+                eprintln!(
+                    "library: {} folder(s) from {}",
+                    saved.folders.len(),
+                    state
+                        .store_path()
+                        .map(|p| p.display().to_string())
+                        .unwrap_or_default()
+                );
+            }
+        }
+        Err(err) => eprintln!("library: {err} — keeping the command-line folder"),
+    }
+    // A folder on the command line wins: it is added if not already listed, then opened.
+    if let Some(path) = folder.as_ref() {
+        state.run("folder.add", json!({"path": path.to_string_lossy()}));
+        state.run("folder.open", json!({"index": state.folder_index(path)}));
+    }
     // Tiles 164 px on screen; keep the 64 most recent frames so scrolling back is a cache hit.
     state.set_thumb_worker(spectrum_app::thumbs::Worker::spawn(220, 64));
     let (handle, inbox) = control::channel(64);

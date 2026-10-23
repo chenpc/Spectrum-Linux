@@ -20,6 +20,7 @@ pub mod heif;
 pub mod icc;
 pub mod import;
 pub mod jpeg;
+pub mod library_store;
 pub mod model;
 pub mod mp4;
 pub mod nav;
@@ -51,6 +52,10 @@ pub use hdr::{
 pub use heif::{find_icc, find_icc_profiles, Nclx};
 pub use icc::{pick_icc, IccInfo};
 pub use jpeg::{ExifData, GainMap, JpegInfo};
+pub use library_store::{
+    apply as apply_library_store, default_path, load as load_library_store, path_in,
+    save as save_library_store, Saved, LIBRARY_STORE_VERSION,
+};
 pub use model::{compose, FolderSlot, InspectorTab, Library, ViewMode};
 pub use mp4::VideoInfo;
 pub use nav::{next_index, row_col, Direction};
