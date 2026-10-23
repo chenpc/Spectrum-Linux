@@ -6,9 +6,9 @@ Spectrum 是 macOS Spectrum（Sony HLG 照片／影片檢視器，約 23.5k 行 
 
 ## 每次 session 的起點
 1. `docs/ui-spec.md`（版面、尺寸、元件 id）、`docs/testing.md`（測試分層與慣例）、
-   `docs/dependencies.md`（依賴決定）、`docs/devlog.md` 最後幾條（最近做過什麼、踩過什麼）。
+   `docs/dependencies.md`（依賴決定）、`docs/backlog.md`（編號缺口清單）、`docs/devlog.md` 最後幾條（最近做過什麼、踩過什麼）。
 2. 順序固定：orient → plan → implement + test → verify（看結果）→ record（devlog）→ commit。
-3. 使用者沒指定任務時，從 `docs/testing.md` 第四節「實作順序」的下一未完成項開始，不要跳步驟。
+3. 使用者沒指定任務時，從 `docs/backlog.md` 取下一項（F## 功能 / Q## 測試紀律）並先確認它不處於「需要使用者決策」狀態；測試層的順序以 `docs/testing.md` 第四節為準，不要跳步驟。做完的項目把 `[ ]` 改成 `[x]`。
 
 ## 不可妥協
 
@@ -35,7 +35,7 @@ Spectrum 是 macOS Spectrum（Sony HLG 照片／影片檢視器，約 23.5k 行 
 - **UI 薄。** `spectrum-app` 只讀 model、送 command；顏色只來自 `theme`／`tokens`（由 fig
   → `observed.json` → `theme.json` → `tokens.rs`，`cargo xtask design`／`theme` 在 CI 驗證）。
 - **程式化呼叫不開 dialog**（不 `rfd`、不阻塞式 modal）；command 只「請求」UI。
-- **分層由 cargo 強制**：`spectrum-core`（不得依賴 egui/eframe）→ `spectrum-app`（egui/eframe）；
+- **分層由 cargo 強製**：`spectrum-core`（不得依賴 egui/eframe）→ `spectrum-app`（egui/eframe）；
   `spectrum-testkit` 不依賴 `spectrum-core`，只當 dev-dependency。
 - **只有 Rust**，不寫 JS/TS，不引入 C/C++ 依賴。
 - 日期／calendar 運算集中在 `spectrum-core::timeline`（有測試），不要在 UI 或各模組各寫一份。
@@ -46,9 +46,10 @@ Spectrum 是 macOS Spectrum（Sony HLG 照片／影片檢視器，約 23.5k 行 
 
 **1. 可位址性（addressability）**
 每個互動元件每幀都要 `widgets::register(id, rect)`（寫進 `ctx.data`，app 收成清單，`inspect()` 公開）。
-id 穩定、記在 `docs/ui-spec.md`。斷言是「**每幀必須存在這些 id**」（`panel:sidebar`、`panel:inspector`、
-`grid:scroll`、`tile:<name>`、`badge:hdr`、`segment:view`…）：id 缺席就 **fail**，不是「找不到就跳過」。
-測試與 agent 都用 id 操作，不用座標、不用文字比對。
+id 穩定、記在 `docs/ui-spec.md`。斷言是「**每幀必須存在這些 id**」（`panel:sidebar`、`grid:scroll`、
+`tile:<name>`、`badge:<name>`、`segment:view`…）：id 缺席就 **fail**，不是「找不到就跳過」。
+只在特定條件出現的 id（例：`panel:inspector` 只在有選取時）記在 `ids-on-selection` 區塊，斷言反過來驗
+「沒選取時必須不存在」。測試與 agent 都用 id 操作，不用座標、不用文字比對。
 
 **2. 只走公開通道**
 驅動用 `egui_kittest` 送 egui event（click、key、type、scroll）＋ command id；斷言讀結果與 app
@@ -102,7 +103,7 @@ cargo clippy --workspace --all-targets -- -D warnings   # 0 error，CI gate
 cargo test --workspace
 cargo run -q -p xtask -- ci                              # fmt/clippy/test + design + theme
 ```
-一個 commit 一條工作（新功能／bug fix／重構不混在一起），訊息寫改了什么與測試結果（例：
+一個 commit 一條工作（新功能／bug fix／重構不混在一起），訊息寫改了什與測試結果（例：
 `HEIF: pick the ICC profile that carries the HDR signal (226 tests passed)`）。
 每次完成一段就 commit 並 push 到 `main`。
 
@@ -114,7 +115,7 @@ cargo run -q -p xtask -- ci                              # fmt/clippy/test + des
 - 看掃描結果：`cargo run -q -p xtask -- scan <dir>`（每檔的 transfer 訊號、`cicp p/t/m`、
   gain map、ICC 描述、HDR 計數）。這是驗證色彩偵測最快的路徑。
 - **UI 改完要看結果**：用 `egui_kittest` snapshot 產 PNG 並實際讀圖；本機沒有 `scrot`／
-  ImageMagick／`xdotool`，不要指望截真实視窗。
+  ImageMagick／`xdotool`，不要指望截真實視窗。
 - 平行 agent：各自 `CARGO_TARGET_DIR`，只改自己擁有的檔案，做完刪掉 target 目錄。
 
 ## 文件紀律

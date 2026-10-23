@@ -8,7 +8,7 @@
 **1. 可位址性（addressability）是自動化能力的根基**
 LightCraft 每個互動元件每幀都會向一個 registry 註冊穩定 id 與 rect：
 `crates/ui-egui/src/widgets.rs` 的 `register(ctx, id, rect)` 寫進 `ctx.data`，app 把它收成
-`app.widgets: Vec<(String, Rect)>`。控制協議把這份清單公開成 `ui.widgets {filter}`，点击用
+`app.widgets: Vec<(String, Rect)>`。控製協議把這份清單公開成 `ui.widgets {filter}`，点擊用
 `ui.clickWidget {id}`，找不到就回 `no widget <id> on screen (see ui.widgets)`。
 測試與 agent 都用 id 操作，不用座標、不用文字比對。id 同時出現在 parity checklist，`cargo xtask
 parity` 在 CI 檢查引用的 id 是否還存在。
@@ -35,7 +35,7 @@ slider 沒有 value 與 range → fail、canvas 工具鍵盤無法到達 → fai
 另有「不是空白」的廉价斷言：distinct colours > 200、top bar 有亮字 > 30 px、`thumb_textures() > 0`。
 
 **6. 跳過必須可稽核**
-libtest 沒有 skipped 狀態。`lightcraft_testkit::skip!(Gpu, "why")` 除了印訊息，还把
+libtest 沒有 skipped 狀態。`lightcraft_testkit::skip!(Gpu, "why")` 除了印訊息，還把
 `{need, reason, test, binary, location}` 寫進 JSONL；`cargo xtask ci` 寫 `target/ci/report.json` 與
 `target/ci/summary.md`，並附本機 GPU adapter 探測。所以「全部通過」不會掩蓋「GPU 測試根本沒跑」。
 
@@ -50,7 +50,7 @@ AGENTS.md 明令禁止 osascript／`cliclick`／accessibility 自動化：它會
 驅動都走 app 自己的通道。
 
 **9. 測試分層，並寫明每層證明什麼**
-文件白紙黑字區分：控制通道注入 egui event 不等於 OS input delivery；native acceptance 必須拒絕
+文件白紙黑字區分：控製通道注入 egui event 不等於 OS input delivery；native acceptance 必須拒絕
 stderr 的 `rendering headlessly`（`ui.screenshot` 2 秒沒 frame 會自動退回 CPU 渲染，對腳本方便但
 不能證明真視窗）；截圖前要 poll `ui.inspect` 到 `loupe.pending == false`。
 
@@ -62,21 +62,21 @@ stderr 的 `rendering headlessly`（`ui.screenshot` 2 秒沒 frame 會自動退�
 
 ## 二、Spectrum-Linux 的測試分層
 
-| 層 | 內容 | 工具 | 進 CI |
-|---|---|---|---|
-| L0 | core 單元：XMP round-trip、HLG 訊號偵測、timeline 分組、selection 語意、thumbnail LRU、trash | `cargo test -p spectrum-core` | 是 |
-| L1 | 命令層：每個 command id 的 dispatch、guard、參數錯誤回可行動的錯誤、拒絕時不改 model | `cargo test -p spectrum-core --test command`（23 條命令，14 tests）；`spectrum-cli` JSON-lines 外殼待建 | 是 |
-| L2 | UI 行為：透過 label/rect 驅動 grid 選取、view 切換、HDR badge、inspector tab | `egui_kittest` | 是 |
-| L3 | UI 結構 audit：AccessKit tree 裡互動節點必有 name、slider 必有 value/range、可鍵盤到達 | `egui_kittest` AccessKit | 是 |
-| L4 | 可位址性：每幀 registry 必含預期 id（`panel:sidebar`、`panel:inspector`、`grid:scroll`、`tile:<name>`、`badge:hdr`、`segment:view`）；id 缺就 fail | registry 斷言 | 是 |
-| L5 | 像素 snapshot：headless 渲染、`settle` 後比，容差 2 LSB；「非空白」廉价斷言 | `Headless` + `egui_kittest::snapshot` | 是 |
-| L6 | soak：種子隨機輸入 + 不變量（無 panic、texture cache ≤ 600、journal 有界、平均幀 ≤ 250 ms） | `egui_kittest` | 短跑進 CI，長跑 `--ignored` |
-| L7 | 色彩參考值：合成 HEIF fixture → HLG tone-map 輸出 vs 手算參考值，`max_diff ≤ 1` | core + CPU 參考實作 | 是（不依賴 GPU） |
-| L8 | corpus：外部素材 sha256 pin；缺席時 `skip!(Corpus, ...)` 記錄 | `xtask corpus` | 是（記錄跳過） |
-| L9 | native acceptance：真視窗、Wayland 色管理、HDR 輸出、螢幕閱讀器 | 真機人工／nightly | 否，明標為非 CI |
+| 層 | 內容 | 工具 | 進 CI | 狀態（2026-10-23） |
+|---|---|---|---|---|
+| L0 | core 單元：XMP round-trip、HLG 訊號偵測、timeline 分組、selection 語意、thumbnail LRU、trash | `cargo test -p spectrum-core` | 是 | 完成 |
+| L1 | 命令層：每個 command id 的 dispatch、guard、參數錯誤回可行動的錯誤、拒絕時不改 model | `cargo test -p spectrum-core --test command`（26 條命令）；JSON-lines 外殼已用 `--control` + `cargo xtask control` | 是 | 完成 |
+| L2 | UI 行為：透過 label/rect 驅動 grid 選取、view 切換、HDR badge、inspector tab；縮圖解碼上螢幕 | `egui_kittest`（含 `tests/thumbnails.rs` 的像素斷言） | 是 | 完成 |
+| L3 | UI 結構 audit：AccessKit tree 裡互動節點必有 name、slider 必有 value/range、可鍵盤到達 | `egui_kittest` AccessKit | 是 | **未做** → `docs/backlog.md` Q01 |
+| L4 | 可位址性：每幀 registry 必含預期 id（`panel:sidebar`、`grid:scroll`、`tile:<name>`、`badge:<name>`、`segment:view`）；只在選取時出現的 id 記在 `ids-on-selection`（`panel:inspector`…）；id 缺就 fail | registry 斷言（讀 `docs/ui-spec.md` 的兩個區塊） | 是 | 完成 |
+| L5 | 像素 snapshot：headless 渲染、`settle` 後比，容差 2 LSB；「非空白」廉价斷言 | `Headless` + `egui_kittest::snapshot` | 是 | 部分：snapshot 完成，廉价斷言 **未做** → Q02 |
+| L6 | soak：種子隨機輸入 + 不變量（無 panic、texture cache ≤ 600、journal 有界、平均幀 ≤ 250 ms） | `egui_kittest` | 短跑進 CI，長跑 `--ignored` | **未做** → Q03 |
+| L7 | 色彩參考值：合成 HEIF fixture → HLG tone-map 輸出 vs 手算參考值，`max_diff ≤ 1` | core + CPU 參考實作 | 是（不依賴 GPU） | **未做** → Q04（依賴 backlog F07） |
+| L8 | corpus：外部素材 sha256 pin；缺席時 `skip!(Corpus, ...)` 記錄 | `xtask corpus` | 是（記錄跳過） | **未做** → Q05 |
+| L9 | native acceptance：真視窗、Wayland 色管理、HDR 輸出、螢幕閱讀器 | 真機人工／nightly | 否，明標為非 CI | 未做；本機 Xwayland 把視窗標為不可見，`ui.screenshot` 只在視窗可見時可用 |
 
-`cargo xtask ci` 跑 L0–L8，並產生 `target/ci/report.json` 與 `target/ci/summary.md`（含跳過清單與本機
-GPU／HDR 探測）。
+`cargo xtask ci` 目前跑 fmt、token drift（`theme.json` → `tokens.rs`）與 snapshot 三步。
+「跑 L0–L8 並產生 `target/ci/report.json`／`target/ci/summary.md`」是**目標**，尚未實作 → `docs/backlog.md` Q06。
 
 ## 三、慣例
 
@@ -92,13 +92,13 @@ GPU／HDR 探測）。
 
 ## 四、實作順序（先測試骨架，再畫 UI）
 
-1. **command registry**（`spectrum-core::command`）：`{id, label, shortcut, params, enabled, run}`；UI 只按 id 派發。✅ 已做（23 條命令 + `crates/spectrum-core/tests/command.rs`），模型在 `spectrum-core::model::Library`。
-2. **widget registry**（`spectrum-app::widgets::register`）：每個互動元件註冊 id + rect；`inspect()` 洩露清單。
-3. **`logic(ctx)` / `ui(ui)` 分離**，讓 L1 可單測邏輯。
-4. **testkit `skip!`**（移植 LightCraft 的 190 行）+ `xtask ci` 的 `report.json`／`summary.md`。
-5. **AccessKit audit**（L3）與 **registry 斷言**（L4）。
-6. **soak**（L6）。
-7. 之後才把 `theme.rs`／`widgets.rs` 接成完整畫面，並補 L5 snapshot。
+1. **command registry**（`spectrum-core::command`）：`{id, label, shortcut, params, enabled, run}`；UI 只按 id 派發。✅ 已完成（26 條命令，`crates/spectrum-core/tests/command.rs`），模型在 `spectrum-core::model::Library`。
+2. **widget registry**（`spectrum-app::widgets::register`）：✅ 已完成（每個 helper 都帶 id；`begin_frame` 每幀清空，`registry(ctx)`/`find(ctx,id)` 公開）。
+3. **`logic(ctx)` / `ui(ui)` 分離**：✅ 已完成（`logic` 先答控製請求 + `begin_frame`，`ui` 畫 + 發布 registry + 寫 screenshot event）。
+4. **控製通道**：✅ 已完成（`--control <port>`、JSON-lines、`cargo xtask control|shot`；事件走 `RawInput`，不依賴 OS 合成輸入）。
+5. **registry 斷言**（L4）：✅ 已完成（讀 `docs/ui-spec.md` 的 `ids` / `ids-on-selection` 兩個區塊）。
+6. **L5 snapshot**：✅ 已完成（`library_all.png`、`detail_adjust.png`）；廉价像素斷言 → backlog Q02。
+7. **testkit `skip!`** + `xtask ci` 的 `report.json`／`summary.md` → backlog Q05/Q06。
+8. **AccessKit audit**（L3）→ backlog Q01；**soak**（L6）→ Q03。
 
-已存在的 `theme.rs` 與 `widgets.rs` 是在這條順序之前寫的草稿，尚未接進 app；會按上面的規則重寫
-（加 registry 註冊與 AccessKit 名稱）。
+`theme.rs` 與 `widgets.rs` 已接進完整畫面（不再是草稿）。功能缺口另見 `docs/backlog.md`（F##）。

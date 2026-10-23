@@ -32,7 +32,7 @@ Library 的 `Months`/`Years` 與 `Memories`/`Shared Albums` 導向對應 screen�
 | Caption | 垂直 gap 3 |
 | Inspector | 寬 260，padding `[12, 14, 12, 14]`，垂直 gap 14 |
 | Inspector tabs | 高 26，容器 `gap 2` / `padding 2`，選項高 22 |
-| 一般控制 | 高 26，radius 6 |
+| 一般控製 | 高 26，radius 6 |
 | 滑桿 | 軌道 2px、radius 1、旋鈕 12×12 |
 | Filter chip | 40×56（含 12px 標籤） |
 
@@ -47,7 +47,7 @@ Library 的 `Months`/`Years` 與 `Memories`/`Shared Albums` 導向對應 screen�
 | hairline | `#d3d3d6` | 1px 分隔線 |
 | divider | `#d6d6d8` | inspector 內部分隔 |
 | text | `#2c2c2e` | 主要文字、選中 segment 文字 |
-| ink | `#333335` | 控制項文字 |
+| ink | `#333335` | 控製項文字 |
 | label | `#4a4a4e` | 滑桿標籤、caption |
 | secondary | `#8a8a8e` | 次級文字、section 標題 |
 | muted | `#7b7b7e` | 未選中的 segment |
@@ -57,7 +57,7 @@ Library 的 `Months`/`Years` 與 `Memories`/`Shared Albums` 導向對應 screen�
 | track | `#c9c9cc` | 滑桿未填滿段 |
 | control | `#e1e1e3` | 次級按鈕底 |
 | selected | `#d7d7da` | 側欄選中底、hover |
-| segmented | `#dcdcde` | 分段控制容器 |
+| segmented | `#dcdcde` | 分段控製容器 |
 | tile | `#e9e9eb` | 縮圖佔位底 |
 | scrim | `#ffffff@60` | 導航按鈕底（半透明） |
 
@@ -73,7 +73,7 @@ Library 的 `Months`/`Years` 與 `Memories`/`Shared Albums` 導向對應 screen�
 | 11 | Regular | 23 | 次級說明 |
 | 14 | Semibold | 13 | 區塊標題 |
 | 11.5 | Regular | 10 | 滑桿標籤 |
-| 12.5 | Medium | 8 | 控制項文字 |
+| 12.5 | Medium | 8 | 控製項文字 |
 | 12.5 | Regular | 7 | 搜尋佔位文字 |
 | 11 | Semibold | 6 | section 標題（Albums、Filters） |
 | 10 | Regular | 5 | filter chip 標籤 |
@@ -100,7 +100,7 @@ radius 分佈：5（39 次）、4（28）、6（22）、1（14）、10（4）、
 設計尚未涵蓋、需要補進 fig 的項目：
 
 - HDR/SDR 切換的 badge（原 macOS 版用 badge 呈現 HDR、headroom 與 color profile）
-- 影片播放控制列與渲染診斷（FPS、CV、colorspace、陀螺儀穩定指數）
+- 影片播放控製列與渲染診斷（FPS、CV、colorspace、陀螺儀穩定指數）
 - 狀態列（掃描 / 複製 / 匯入進度）
 - 選取態（multi-select、marquee）與 subfolder tile
 
@@ -119,7 +119,7 @@ radius 分佈：5（39 次）、4（28）、6（22）、1（14）、10（4）、
 | `titlebar` | 高 52 | 資料夾名 + `N items`，右端 `Rescan` |
 | `sidebar` | 寬 232 | **只有 Folder view**：`Folders` 清單（`名稱  數量`，選中者高亮）、路徑輸入框 + `Add folder`、`Remove folder` |
 | `main` | 視窗減側欄減 inspector，padding `[16, 20, 16, 20]` | 第一列是 `toolbar`，下面才是 grid |
-| `toolbar` | 高 42（控制項 26 + 上下各 6）、底邊 1px hairline | `All Photos / Months / Years` 分段、`All / Photos / Videos` 分段、`HDR only`、`Clear filter`、`Name / Date / Kind / HDR first / Size` 分段、`Natural order ⇄ Reversed` |
+| `toolbar` | 高 42（控製項 26 + 上下各 6）、底邊 1px hairline | `All Photos / Months / Years` 分段、`All / Photos / Videos` 分段、`HDR only`、`Clear filter`、`Name / Date / Kind / HDR first / Size` 分段、`Natural order ⇄ Reversed` |
 | 月份標題 | 15 Semibold `#2c2c2e` + 11 `#8a8a8e` 數量 | `August 2016` + `12 Photos`（混合影片時寫 `Items`），點標題摺疊該月 |
 | grid | 縮圖 164×164、gap 2、行距 166 | 欄位數依可用寬度算（設計 1167 px → 7 欄）；HDR/SDR badge 畫在**磁磚內**左上角 |
 | `inspector` | 寬 260，**只在有選取時出現** | caption（檔名 + 中繼）、訊號 chip、`Adjust / Info` 分段、rotate / flip / restore / trash、Info 頁的訊號與元資料列 |
@@ -134,7 +134,7 @@ radius 分佈：5（39 次）、4（28）、6（22）、1（14）、10（4）、
 - 移除資料夾只從清單拿掉，**不刪檔案**（`folder.remove` 的測試直接斷言檔案還在）。
 - 磁磚顯示**真實縮圖**（`thumbs::Worker` 一條解碼執行緒 → `ThumbnailService`：glycin 解碼 →
   `downscale` box-average → `crop_center_square` 中心方型裁剪）。egui 0.36 不公開 `UvRect`，所以
-  裁剪在像素层面做：4:3 照片被裁掉兩邊而不是壓扁。解不了的檔案（影片、未知格式）永久走純色佔位
+  裁剪在像素層面做：4:3 照片被裁掉兩邊而不是壓扁。解不了的檔案（影片、未知格式）永久走純色佔位
   + 檔名；`thumb_asked` / `thumb_failed` 保證不會每帧重排同一檔。解碼器只在 real window 與
   `tests/thumbnails.rs` 裡掛，所以快照不受解碼時間影響。
 - 原型的 Screen 1 沒有 inspector 欄（`Main` 一路到視窗右緣）；這裡選取一張才出現 inspector，所以沒選取時 grid 是 7 欄、選取後變 5 欄。
@@ -143,7 +143,7 @@ radius 分佈：5（39 次）、4（28）、6（22）、1（14）、10（4）、
 實作時踩到的版面教訓（都有測試或註解守護）：
 
 1. **面板高度會裁切內容但節點仍留在樹裡**：把 view 分段放在 52 px 標題列的第二列時，它的 rect 落在 y 57–83（工具列的位置），點擊會打到工具列。標題列只能有一列。
-2. **分段控制不能依 `available_width` 分配-cell 寬度**：這樣 track 會吃到整列寬度，把後面的控制項推到視窗外，節點存在但點不到。`widgets::segmented` 改成依文字寬 hug，`no_control_sits_outside_the_window` 測試斷言每個 Button / TextInput 的 rect 中心都在視窗內。
+2. **分段控製不能依 `available_width` 分配-cell 寬度**：這樣 track 會吃到整列寬度，把後面的控製項推到視窗外，節點存在但點不到。`widgets::segmented` 改成依文字寬 hug，`no_control_sits_outside_the_window` 測試斷言每個 Button / TextInput 的 rect 中心都在視窗內。
 3. **`Grid` 的欄寬是依「看過的 cell」算的**：32 個檔案時後面的欄位收到 HDR badge 的寬度（~42 px），磁磚互相重疊 122 px。改成自己算欄位數（`columns_for_width`）+ 每列 `ui.horizontal`。
 4. **`horizontal_wrapped` 在垂直 `ScrollArea` 裡拿到的寬度是無限的**：一條 wrapped 列跑到 5236 px。欄位數必須在 scroll area **外面**量（`ui.available_width()`），再傳進去。
 5. **`Ui::put` 會推進父 ui 的 cursor**：把 badge 用 `put` 疊在磁磚上，下一塊磁磚就從 pill 的右緣開始（實測 x 從 432 變成 306）。改成先在 `allocate_ui_with_layout(164×164)` 的子 ui 裡摆 content，父層 pitch 才不會被影響。

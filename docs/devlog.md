@@ -492,7 +492,7 @@ UI 左側加了 `filter_kind`（All kinds / Photos / Videos）和 `filter_hdr_on
 
 **問題：** 篩選只有 `kind` 和 `HDR only`，無法單獨看 HLG 或 PQ；而且 UI 上看不出目前顯示了幾項、用的是哪個篩選和排序。
 
-**根因／做法：** `Filter` 加 `transfer: Option<TransferFunction>`，`label()` 變成組合式（例如 `all kinds · HDR only · HLG`）。UI 左側加 `transfer_box`（Transfer: any / HLG / PQ）與 `status` 列，`refresh()` 里更新成 `{可見} of {總數} · {filter} · sorted by {sort}`。
+**根因／做法：** `Filter` 加 `transfer: Option<TransferFunction>`，`label()` 變成組合式（例如 `all kinds · HDR only · HLG`）。UI 左側加 `transfer_box`（Transfer: any / HLG / PQ）與 `status` 列，`refresh()` 裡更新成 `{可見} of {總數} · {filter} · sorted by {sort}`。
 
 要注意 gain map 的 transfer code 是 `Unspecified`，所以 `HDR only` 會包含它、但 `HLG` / `PQ` 不會。這是刻意保留的差別：badge 顯示「判定來源」，filter 顯示「transfer code」。
 
@@ -1065,7 +1065,7 @@ UI：`Ui` 新增 `import_list`、`import_scroll`、`import_model`、`import_rows
 
 ## 2026-10-23 — 縮圖真的進到格子
 `ThumbnailService::get` 改回傳 `Decoded { width, height, rgba }`（自己實作 box-average `downscale`，不再依賴 glycin 的 `set_scale`——它對 8064×6048 的 HEIC 無效，每檔 ~850ms、~146MB RGBA）。App 端 `thumbs::Worker`：一條解碼執行緒、LRU 上限 64 張，每帧最多上傳 3 張、每帧只補 3 個新請求（`thumb_asked` / `thumb_failed` 保證不會每帧重排同一檔）。tile 有 texture 就畫圖（`alt_text` 帶檔名，AccessKit 找得到）、沒有就保留 placeholder 色與檔名；解不了的（`.MOV`、`video/quicktime`）永久走 placeholder。
-`crop_center_square` 在 core 裡做中心方型裁剪：egui 0.36 不公開 `UvRect`，所以裁剪在像素层面做，4:3 照片被裁掉兩邊而不是壓扁。測試用合成的 PNG 驗證「紅圖在 red tile、藍圖在 blue tile、影片仍是 placeholder」，以及沒掛 decoder 時快照仍是 placeholder（快照不依賴解碼時間）。
+`crop_center_square` 在 core 裡做中心方型裁剪：egui 0.36 不公開 `UvRect`，所以裁剪在像素層面做，4:3 照片被裁掉兩邊而不是壓扁。測試用合成的 PNG 驗證「紅圖在 red tile、藍圖在 blue tile、影片仍是 placeholder」，以及沒掛 decoder 時快照仍是 placeholder（快照不依賴解碼時間）。
 順手修了 `testkit::synthetic_png`：stored deflate block 的長度欄位寫成 `u16`，超過 65535 bytes 會被無聲截斷，glycin 回報 `IDAT or fDAT chunk does not have enough data for image`；改成切多個 block。200×120 以上的 PNG 之前其實是壞檔。
 驗證：新增 `crates/spectrum-app/tests/thumbnails.rs`（3 個測試），`cargo test --workspace` 244 通過、`xtask ci` 全綠。
 
@@ -1074,3 +1074,8 @@ UI：`Ui` 新增 `import_list`、`import_scroll`、`import_model`、`import_rows
 本機 Xwayland（mutter rootless）會把我們的視窗標為不可見（winit `is_visible()` false，X11 `GetImage` 回 `Match`），eframe 因此只跑 logic 不跑 pass：`ui.inspect` 答得出來、`ui.screenshot` / `ui.click` 答不出來。所以自動化改用 `egui_kittest` 的離頭渲染（`harness.render()`），live 視窗只在啟動後幾秒可截圖。
 驗證：kittest 的 `harness.render()` 渲染出真實縮圖（12 張合成圖 + 1 檔影片，格子裡 49 種顏色、placeholder 不再是主色）；`cargo test --workspace` 244 通過。
 教訓：eframe 對不可見視窗不會產生 pass，任何依賴繪製的命令（截圖、event 觸發的點擊）都要主動 `request_repaint` 並在逾時時說清楚原因，而不是讓測試卡死。
+
+## 2026-10-23 — 缺口清單成一份可選的 backlog
+把 macOS 參考版（11,899 行 Swift）跟 Rust 版（core 4,550 + app 2,477）逐模組對過，寫成 `docs/backlog.md`：**F01–F19 功能缺口**、**Q01–Q07 測試與紀律缺口**，每項附「MacOS 參考規模／現況證據／要動什麼」。證據用的是 `grep -c crate::module`（例如 `nav`/`search`/`import`/`clipboard`/`undo`/`folder_cache` 在 core 與 app 都是 0 處使用 — 實作在、沒人接）與 `command.rs` 的命令清單（沒有 `edit.undo`/`edit.redo`/`edit.flip`/`clip.*`）。
+同步修了三處文件與事實不符的地方：`docs/testing.md` 的分層表加「狀態」欄（L3/L6/L7/L8 明確標未做）、第四節實作順序改成實際進度（`theme.rs`/`widgets.rs` 早已接進完整畫面）、`cargo xtask ci` 目前只做 fmt/token/snapshot 三步而非 L0–L8；`AGENTS.md` 的 registry 規則例子改掉不存在的 `panel:inspector`（它只在 `ids-on-selection`），並把「無指定任務時的起點」從 testing.md 改成 `docs/backlog.md`。另外把文件裡混進的簡體字統一回繁體。
+驗證：`cargo fmt --all --check`、`cargo xtask ci` 全綠、`cargo test --workspace` 全部 suite 0 failed。
