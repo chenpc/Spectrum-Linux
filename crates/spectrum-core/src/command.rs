@@ -21,6 +21,7 @@ use crate::crop::CropRect;
 use crate::edit::EditOp;
 use crate::filter::Filter;
 use crate::model::{InspectorTab, Library, ViewMode};
+use crate::nav::{next_index, Direction};
 use crate::select::ClickMods;
 use crate::sort::{SortDirection, SortKey};
 use crate::trash::DeleteOutcome;
@@ -254,6 +255,72 @@ pub fn specs() -> &'static [CommandSpec] {
             run: |lib, _| {
                 lib.expand_all();
                 Ok(json!({"groups": 0}))
+            },
+        },
+        CommandSpec {
+            id: "select.move",
+            label: "Move selection",
+            group: "Selection",
+            shortcut: Some("Arrows / Home / End"),
+            params: "{\"direction\": \"right\", \"columns\": 7}",
+            enabled: ALL_ENABLED,
+            run: |lib, args| {
+                let name = str_arg(args, "direction")?;
+                let direction = Direction::parse(name)
+                    .ok_or_else(|| CommandError::BadParam(format!("unknown direction {name:?}")))?;
+                let columns = usize_arg(args, "columns")?.max(1);
+                let positions = lib.visible();
+                if positions.is_empty() {
+                    return Err(CommandError::Disabled("nothing is visible to select".into()));
+                }
+                // From the anchor if there is one, else from the last selected row. Neither key is
+                // in the visible list when a filter hid it, so a cold start begins at the first.
+                let current = lib
+                    .selection
+                    .primary
+                    .or_else(|| lib.selection.set.last().copied())
+                    .and_then(|index| positions.iter().position(|&pos| pos == index));
+                // Nothing selected yet: the first keypress picks an end rather than doing nothing,
+                // so `End` lands on the last item and every other key on the first.
+                let next = match current {
+                    Some(pos) => next_index(pos, positions.len(), columns, direction),
+                    None => Some(if direction == Direction::End {
+                        positions.len() - 1
+                    } else {
+                        0
+                    }),
+                };
+                match next {
+                    Some(pos) => {
+                        let index = positions[pos];
+                        lib.select(std::slice::from_ref(&index));
+                        Ok(json!({
+                            "moved": true,
+                            "index": index,
+                            "position": pos,
+                            "total": positions.len(),
+                        }))
+                    }
+                    // Past the edge the selection stays put; that is a normal answer, not an error.
+                    None => Ok(json!({
+                        "moved": false,
+                        "position": current.unwrap_or(0),
+                        "total": positions.len(),
+                    })),
+                }
+            },
+        },
+        CommandSpec {
+            id: "select.clear",
+            label: "Clear selection",
+            group: "Selection",
+            shortcut: Some("Esc"),
+            params: "{}",
+            enabled: ALL_ENABLED,
+            run: |lib, _| {
+                let had = lib.selection.count();
+                lib.clear_selection();
+                Ok(json!({"cleared": had}))
             },
         },
         CommandSpec {

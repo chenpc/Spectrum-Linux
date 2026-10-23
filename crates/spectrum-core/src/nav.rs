@@ -11,6 +11,32 @@ pub enum Direction {
     End,
 }
 
+impl Direction {
+    /// Command-registry spelling (`{"direction": "down"}`).
+    pub fn parse(name: &str) -> Option<Direction> {
+        Some(match name {
+            "up" => Direction::Up,
+            "down" => Direction::Down,
+            "left" => Direction::Left,
+            "right" => Direction::Right,
+            "home" => Direction::Home,
+            "end" => Direction::End,
+            _ => return None,
+        })
+    }
+
+    pub fn arg(self) -> &'static str {
+        match self {
+            Direction::Up => "up",
+            Direction::Down => "down",
+            Direction::Left => "left",
+            Direction::Right => "right",
+            Direction::Home => "home",
+            Direction::End => "end",
+        }
+    }
+}
+
 /// Next display position, or None when the move would leave the model.
 ///
 /// `columns` is the number of columns the grid is actually using (1 for a single-column list).

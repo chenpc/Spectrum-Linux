@@ -19,7 +19,7 @@
 - 附带：啟動時自動 `rescan`（目前要手按 Rescan）。
 
 ### F02 — 鍵盤導覽與快捷鍵
-- [ ] 未完成
+- [x] 完成（2026-10-23）：命令 `select.move`（direction + columns）與 `select.clear`；UI 在 `tiles()` 裡以實際欄數處理 ← → ↑ ↓ Home End Esc，並把選中的磁磚捲進可視區（`scroll_hold` 2 幀）。測試：`crates/spectrum-core/tests/select_move.rs`(9)、`crates/spectrum-app/tests/keyboard.rs`(6)。快捷键表見 `docs/ui-spec.md`「鍵盤操作」。
 - macOS：方向鍵/Return/⌘ 快捷鍵選取與開圖。
 - 現況：`nav.rs`(43) 有 `next_index`/`row_col`，但 `app.rs` 完全沒用（`core_use=0`、`app_use=0`）。UI 只處理 Enter（add-folder 輸入框）與點擊的 ctrl/shift。**沒有方向鍵選取、沒有 ⌘/Ctrl 快捷鍵、沒有 PageUp/PageDown。**
 - 要動：把 `nav::next_index` 接進 `grid:*` 的焦點邏輯；加 `select.next`/`select.prev` 命令（走 dispatch，不直接改 model）；快捷鍵表寫進 `docs/ui-spec.md`。

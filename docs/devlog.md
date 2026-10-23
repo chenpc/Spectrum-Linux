@@ -1086,3 +1086,13 @@ UI：`Ui` 新增 `import_list`、`import_scroll`、`import_model`、`import_rows
 **修改的檔案：** `crates/spectrum-core/src/{library_store.rs,lib.rs}`、`crates/spectrum-app/src/{app.rs,main.rs}`、`docs/backlog.md`。
 **測試：** `crates/spectrum-core/tests/library_store.rs` 6 條（round-trip、missing drop+active clamp、duplicate/blank collapse、malformed+錯版本回錯誤且檔案不被改、apply 會 rescan 所以 99 這種舊 count 不被相信、save 自建父目錄）；`crates/spectrum-app/tests/store.rs` 6 條（add 立即寫檔、重啟讀回並 rescan 出真實 count、消失的資料夾被報出來、壞檔保留命令列資料夾、remove  rewrite 且不刪檔案、沒設 store path 就不寫檔）。`cargo test --workspace` 256 通過、clippy `-D warnings` 0、`xtask ci` 綠。
 **注意：** 測試自己寫 raw JSON 時要先建 `<dir>/spectrum/` 目錄（`save` 會自建，手寫不會）；第一版就踩了這個（3 條 `NotFound`）。
+
+## 2026-10-23 — F02：鍵盤導覽，以及兩個輸入框的 bug
+**問題：** `nav.rs` 有 `next_index`/`row_col` 但 app 完全沒用：沒有方向鍵、沒有快捷鍵；`select.rs` 只有滑點。
+**根因與做法：** 命令層加 `select.move`（`{"direction": ..., "columns": N}`，走 `nav::next_index`）與 `select.clear`；語意：**只在可見清單上走**（篩選、摺疊的月份自然跳過），越界回 `{"moved": false}` 且不改選取（不是錯誤），冷啟動時 `End` 落最後一個、其他鍵落第一個。UI 在 `tiles()` 算完實際欄數之後、借用 model 繪圖之前處理按鍵，所以同一幀就顯示新選取；選中的磁磚用 `scroll_to_rect_animation(..., ScrollAnimation::none())` 捲進可視區，並用 `scroll_hold = 2` 連續要求兩幀。`ScrollArea` 加 `id_salt("grid")`。
+**順手修掉兩個輸入框的實錯：**
+1. `typed.clicked()` 也會觸發 `folder.add` — 想輸入路徑而點一下輸入框，就**靜默改了資料夾清單**。改成只有 `Add folder` 按鈕或 Enter 提交。
+2. egui `TextEdit` 預設 `return_key = Enter` 會**吃掉** Enter，所以 app 自己的 `key_pressed(Enter)` 永遠 false，Enter 从来不提交。改成 `.return_key(None)`，Enter 由 app 判且要求該欄有焦點（新增 `path_focused`，同時用來讓方向鍵在輸入時不搬選取）。
+**修改的檔案：** `crates/spectrum-core/src/{command.rs,nav.rs,lib.rs}`、`crates/spectrum-app/src/app.rs`、`docs/ui-spec.md`、`docs/backlog.md`。
+**測試：** `tests/select_move.rs` 9 條（欄序、Home/End、越界不改 model、摺疊群跳過並回 `Disabled`、篩選生效、單欄、clear、未知 direction/缺 columns 為 `BadParam`、不動檔案也不寫 sidecar）；`tests/keyboard.rs` 6 條（←→ 走一個、↓ 走一整列且用實測欄數、Home/End/Esc、越界不動、鍵盤選取的磁磚落在 `grid:scroll` 內、輸入框搶走方向鍵且點擊不會加資料夾、Enter 提交且不會加兩次）。`cargo test --workspace` 271 通過、clippy 0、`xtask ci` 綠（snapshot 未變）。
+**注意：** 第一次選取會同時出現 inspector → 網格變窄 → 該幀的 scroll offset 被重置，所以「捲進可視區」要連續要求兩幀；單幀測試會一直失敗（實測：`tile y=1039` 對比 `scroll 123..876`）。另外 `egui_kittest` 的離頭渲染不會推進時間，任何依賴 `ScrollAnimation` 的動畫都不會有進展 — 用 `ScrollAnimation::none()`。

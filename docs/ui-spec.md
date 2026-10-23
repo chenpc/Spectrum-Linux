@@ -151,6 +151,23 @@ radius 分佈：5（39 次）、4（28）、6（22）、1（14）、10（4）、
 7. **`egui_kittest` 會把 app 包在 `outer_margin(8)` 的 Frame 裡**，所以測試裡每個面板都往內縮 8 px（1440 px 畫面只有 6 欄，真視窗是 7 欄）。欄位數改用設計自己的寬度驗（`grid_columns_match_the_design_widths`），畫面測試則斷言「不能空整欄」。
 8. **eframe 對不可見視窗不跑 pass**：`ui.screenshot`（`ViewportCommand::Screenshot`）要由 pass 執行，而本機 Xwayland（mutter）把視窗標為不可見，所以請求會逾時（`request_nudged` 每 120ms `request_repaint`、5s 回報原因，`main.rs` 另有 300ms 心跳）。自動化渲染改用 `harness.render()` 讀真實像素。
 
+## 鍵盤操作
+
+| 按鍵 | 行為 | 走的命令 |
+|---|---|---|
+| `←` `→` | 可見清單裡前後一個 | `select.move {"direction": "left|right", "columns": N}` |
+| `↑` `↓` | 上下一个**列**（N = 實際欄數） | 同上，`up` / `down` |
+| `Home` / `End` | 第一個 / 最後一個（無選取時 `End` 直接落最後、其餘落第一個） | 同上 |
+| `Esc` | 清空選取 | `select.clear` |
+| `Enter` | **只有在 path 欄有焦點時**提交資料夾路徑 | `folder.add` |
+
+規則：
+- 全部經 `dispatch()`，不直接改 model；越界時命令回 `{"moved": false}` 且**不改選取**（不是錯誤）。
+- `columns` 由繪圖當下的實際欄數傳入（`columns_for_width(wrap_width)`），所以 `↓` 跟畫面的列對得起來；有 inspector 時欄數會變少，這是对的。
+- path 欄有焦點時導航鍵不進格子（`path_focused`），否則輸入路徑時會把選取搬走。
+- 鍵盤移動後會對該磁磚 `scroll_to_rect_animation(..., ScrollAnimation::none())`，連續要求 2 幀（`scroll_hold`）：第一次選取同時出現 inspector 会让網格變窄、該幀的 offset 會被重置，1 幀不夠。
+- egui 的 `TextEdit` 預設 `return_key = Enter` 會**吃掉** Enter，所以 path 欄用 `.return_key(None)`，Enter 由 app 自己判（並要求焦點）。另外 `typed.clicked()` 曾經會直接提交路徑 — 點一下輸入框就會改資料夾清單，已修（`tests/keyboard.rs` 有回歸測試）。
+
 ## 元件 id 清單（addressability）
 
 每個 id 都必須在每幀的 registry 裡出現（前綴結尾的 `:` 表示「至少一個該前綴的 id」）。

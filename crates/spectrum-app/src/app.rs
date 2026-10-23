@@ -85,6 +85,15 @@ pub struct AppState {
     /// Where the folder list is persisted. `None` means "do not persist", which is what a test gets
     /// unless it sets a store path explicitly.
     store_path: Option<std::path::PathBuf>,
+    /// The add-folder field owns the arrow keys while it is focused; the grid must not move the
+    /// selection while someone types a path.
+    path_focused: bool,
+    /// A tile to bring into view (set by a keyboard move, cleared after `scroll_hold` frames).
+    scroll_focus: Option<usize>,
+    /// Frames left to keep asking for the jump. Selecting the first file also brings the inspector
+    /// up, which narrows the grid and resets the offset in that same frame, so one frame is not
+    /// enough: two frames land the jump after the layout has settled.
+    scroll_hold: u8,
 }
 
 impl AppState {
@@ -105,6 +114,9 @@ impl AppState {
             quit: false,
             inbox: None,
             store_path: None,
+            path_focused: false,
+            scroll_focus: None,
+            scroll_hold: 0,
         }
     }
 
@@ -125,6 +137,12 @@ impl AppState {
     /// attaches one explicitly, and snapshots must not depend on decode timing.
     pub fn set_thumb_worker(&mut self, worker: Worker) {
         self.thumb_worker = Some(worker);
+    }
+
+    /// The text currently in the add-folder field. Read-only: tests and the control channel need to
+    /// tell "typed but not submitted" from "submitted".
+    pub fn add_path(&self) -> &str {
+        &self.add_path
     }
 
     /// Point the folder list at a file. `None` disables persistence (the test default).
@@ -392,6 +410,9 @@ impl AppState {
             )
             .show(ui, |ui| {
                 let scroll = ScrollArea::vertical()
+                    // A stable id: the inspector appearing must not reset the grid's scroll state,
+                    // which would throw away a keyboard "bring into view" jump in the same frame.
+                    .id_salt("grid")
                     .auto_shrink([false, false])
                     .show(ui, |ui| self.folders(ui, &tokens));
                 widgets::register(ui, "sidebar:scroll", scroll.inner_rect, "scroll");
@@ -595,10 +616,15 @@ impl AppState {
         let typed = ui.add(
             egui::TextEdit::singleline(&mut self.add_path)
                 .hint_text("Folder path")
-                .font(theme::font(text::CONTROL_SIZE)),
+                .font(theme::font(text::CONTROL_SIZE))
+                // egui's default `return_key` is Enter, and it *consumes* that key, so the Enter
+                // check below would never see it. Enter is handled here instead, gated on focus.
+                .return_key(None),
         );
         ui.add_space(space::CONTROL_INLINE);
         widgets::register(ui, "field:add-path", typed.rect, "field");
+        // Track focus so the grid's arrow keys stay put while a path is being typed.
+        self.path_focused = typed.has_focus();
         let path = self.add_path.trim().to_string();
         let add = widgets::control_button(
             ui,
@@ -609,8 +635,12 @@ impl AppState {
         );
         // Enter submits the path. This screen has exactly one text input, so Enter is not gated on
         // focus; if a second input is added (crop fields, search), gate this on the field's focus.
-        let enter_pressed = !path.is_empty() && ui.input(|i| i.key_pressed(egui::Key::Enter));
-        let wants_add = add.clicked() || typed.clicked() || enter_pressed;
+        // Enter submits the path, but only while the field holds focus: Enter elsewhere must not add
+        // whatever was typed. Clicking the field only focuses it — it used to add the folder too, so
+        // clicking to type a path silently changed the library.
+        let enter_pressed =
+            self.path_focused && !path.is_empty() && ui.input(|i| i.key_pressed(egui::Key::Enter));
+        let wants_add = add.clicked() || enter_pressed;
         if wants_add && !path.is_empty() && self.run("folder.add", json!({"path": path})) {
             self.add_path.clear();
         }
@@ -727,6 +757,10 @@ impl AppState {
         clicks: &mut Vec<(usize, bool, bool)>,
     ) {
         let gap = size::GRID_GAP;
+        let columns = columns_for_width(wrap_width);
+        // Keys are handled where the real column count is known, and before the model is borrowed
+        // for drawing, so this frame already shows the moved selection.
+        self.handle_nav_keys(ui, columns);
         let entries = &self.lib.entries;
         let selection = &self.lib.selection;
         // A wrapped row, not a `Grid`: `Grid` sizes its columns from whatever cells it has seen,
@@ -736,8 +770,8 @@ impl AppState {
         // inside a vertical `ScrollArea` gets an unbounded child width, so a wrapped row ran for
         // thousands of pixels instead of filling the panel; a `Grid` instead sized its trailing
         // columns from the narrowest cell and let tiles overlap.
-        let columns = columns_for_width(wrap_width);
         ui.spacing_mut().item_spacing.y = gap;
+        let pending_scroll = self.scroll_focus.filter(|_| self.scroll_hold > 0);
         for row in indices.chunks(columns) {
             ui.horizontal(|ui| {
                 ui.spacing_mut().item_spacing = Vec2::new(gap, gap);
@@ -762,8 +796,56 @@ impl AppState {
                     if response.clicked() {
                         self.click_tile(ui, index, clicks);
                     }
+                    if pending_scroll == Some(index) {
+                        // Bring the keyboard-selected tile into view: `scroll_hold` keeps asking for
+                        // a couple of frames, then stops so the user's own scrolling is not fought.
+                        // No animation — a key press should land on the item, and egui's animated
+                        // jump needs real elapsed time a settled-frame test does not have.
+                        ui.scroll_to_rect_animation(
+                            response.rect,
+                            None,
+                            egui::style::ScrollAnimation::none(),
+                        );
+                    }
                 }
             });
+        }
+        self.scroll_hold = self.scroll_hold.saturating_sub(1);
+        if self.scroll_hold == 0 {
+            self.scroll_focus = None;
+        }
+    }
+
+    /// Arrow/Home/End move the selection through the visible list; Escape clears it. Skipped while
+    /// the add-folder field is focused, so typing a path never moves the grid.
+    fn handle_nav_keys(&mut self, ui: &Ui, columns: usize) {
+        if self.path_focused {
+            return;
+        }
+        let directions: Vec<&'static str> = ui.input(|i| {
+            [
+                (i.key_pressed(egui::Key::ArrowLeft), "left"),
+                (i.key_pressed(egui::Key::ArrowRight), "right"),
+                (i.key_pressed(egui::Key::ArrowUp), "up"),
+                (i.key_pressed(egui::Key::ArrowDown), "down"),
+                (i.key_pressed(egui::Key::Home), "home"),
+                (i.key_pressed(egui::Key::End), "end"),
+            ]
+            .into_iter()
+            .filter_map(|(pressed, direction)| pressed.then_some(direction))
+            .collect()
+        });
+        if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
+            self.run("select.clear", json!({}));
+        }
+        for direction in directions {
+            if self.run(
+                "select.move",
+                json!({"direction": direction, "columns": columns}),
+            ) {
+                self.scroll_focus = self.lib.sole();
+                self.scroll_hold = 2;
+            }
         }
     }
 
