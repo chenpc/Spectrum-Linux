@@ -120,7 +120,14 @@
 - macOS：`Services/HLGExportService.swift`。
 - 現況：只有 XMP sidecar 寫回編輯，沒有匯出。依賴 F07（先有 tone-map 才有匯出可談）。
 
-### F19 — 網路磁碟
+### F20 — 「Add Folder」流程（瀏覽器、拖曳、Enter/Esc）
+- [x] 完成（2026-08-03）
+- macOS：`SidebarView.addFolder()` 用 `NSOpenPanel`（`canChooseDirectories = true`、`allowsMultipleSelection`、prompt "Scan"）＋側欄拖曳 ＋ `--add-folder` CLI。
+- 做了：`spectrum-core/src/folder_browser.rs`（只列目錄、跳過 `.` 開頭、不分大小寫排序、每目錄帶自己那層的媒體檔數、不遞迴）；`spectrum-app/src/browser.rs`（懸浮視窗：目前路徑、26 px 目錄列、`Up`/`Cancel`/`Scan`、空目錄與讀不到目錄都有文字說明）；`app.rs` 加 `button:browse-folder`、拖曳資料夾走 `RawInput::dropped_files`、`Esc`/`Enter` 的優先次序。
+- 一切變動仍走 `folder.add`：重複會被擋、原因進 `notice_text()`、**視窗保持開著**；成功才關視窗並清掉輸入框；F01 的持久化照舊（加入即寫設定檔）。
+- 測試：`crates/spectrum-core/tests/folder_browser.rs`(5)、`crates/spectrum-app/tests/add_folder.rs`(10：開／走／Scan／Cancel／重複／讀不到／空目錄／Esc 不清選取／Enter 確認／拖曳目錄與拖曳檔案／registry id 只在開著時存在）。`docs/ui-spec.md` 新增 `ids-on-browser` 區塊與〈Add Folder 瀏覽器〉幾何表。
+- 設計偏離：原型側欄只有 Add folder / Remove folder 兩顆按鈕，`Browse…` 是新增（記錄在 ui-spec）。
+- 還欠：一次加**多個**目錄（macOS 的 panel 可多選）；目前一次一個。拖曳到「側欄」而非整窗（macOS 是側欄）。
 - [ ] 未完成
 - macOS：`NetworkVolumeService.swift`(119)。
 - 現況：無。Linux 走 `/mnt`、`gvfs`、SMB 掛載點；主要工作是「掛載點慢/斷線時不要卡住掃描」→ 需要 timeout 與可中斷掃描。
@@ -132,7 +139,7 @@
 ### Q01 — L3 AccessKit audit
 - [x] 完成
 - 做了：`crates/spectrum-app/tests/accesskit.rs`（6 test）。走整棵 AccessKit 樹，把 **widget registry 承諾的 id** 跟樹裡節點對起來：
-  - `button:*` / `segment:*:label` / `folder:*`（18 個）必須各自對應一個**同邊界**的 `Button` 節點，且 `label` 非空；两边數量必須相等，所以日後把控件改成純繪製會被這條擋下。
+  - `button:*` / `segment:*:label` / `folder:*`（18 個）必須各自對應一個**同邊界**的 `Button` 節點，且 `label` 非空；兩邊數量必須相等，所以日後把控件改成純繪製會被這條擋下。
   - `field:add-path` 是 `TextInput`，accessible name 來自 hint（`placeholder="Folder path"`）。
   - `group:<key>` 是 clickable `Label`（不是 Button），節點落在 registry rect 內且文字含年份。
   - 格子（tile）的檔名、 metadata 行、`SDR`/`HDR` badge 都以 `Label` 出現在樹裡 → 螢幕閱讀器讀得到。

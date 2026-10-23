@@ -9,6 +9,7 @@
 )]
 
 pub mod app;
+pub mod browser;
 pub mod control;
 pub mod detail;
 pub mod theme;

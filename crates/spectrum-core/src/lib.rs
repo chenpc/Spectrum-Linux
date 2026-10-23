@@ -14,6 +14,7 @@ pub mod cover;
 pub mod crop;
 pub mod edit;
 pub mod filter;
+pub mod folder_browser;
 pub mod folder_cache;
 pub mod hdr;
 pub mod heif;

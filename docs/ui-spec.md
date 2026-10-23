@@ -161,7 +161,13 @@ radius 分佈：5（39 次）、4（28）、6（22）、1（14）、10（4）、
     樣子）。只有 `nclx`（HEIF）與 `cICP`（PNG）——描述影像資料本身的訊號——會觸發轉換；ICC profile 推斷
     的訊號不會，因為 loader 已把那些檔案渲染成顯示就緒畫面。texture 以 `(path, transform)` 為 key，来回
     切換不重新解碼（像素證據：`crates/spectrum-app/tests/hdr.rs`）。
-14. **eframe 對不可見視窗不跑 pass**：`ui.screenshot`（`ViewportCommand::Screenshot`）要由 pass 執行，而本機 Xwayland（mutter）把視窗標為不可見，所以請求會逾時（`request_nudged` 每 120ms `request_repaint`、5s 回報原因，`main.rs` 另有 300ms 心跳）。自動化渲染改用 `harness.render()` 讀真實像素。
+14. **`ui.cursor()` 的 rect 高度是無限的**：它指「下一個控件的起點」，在垂直排版裡沒有下界。拿它註冊
+    `info:browser-path` 會得到 `[[527,224]-[867,inf]]`，控制通道點下去就點到不存在的地方。用控件自己的
+    `Response::rect`（`browser.rs`）。
+15. **`control_button(..., active)` 是 accent 狀態**：把 `button:browse-folder` 傳 `true` 之後，Q02 的
+    「未選取時畫面不該有 accent」斷言立刻紅 — 那條斷言就是為了抓這個。主操作（`Scan`）可以用 accent，
+    常駐控件不行。
+16. **eframe 對不可見視窗不跑 pass**：`ui.screenshot`（`ViewportCommand::Screenshot`）要由 pass 執行，而本機 Xwayland（mutter）把視窗標為不可見，所以請求會逾時（`request_nudged` 每 120ms `request_repaint`、5s 回報原因，`main.rs` 另有 300ms 心跳）。自動化渲染改用 `harness.render()` 讀真實像素。
 
 ## 詳細檢視（本實作新增）
 
@@ -183,6 +189,30 @@ radius 分佈：5（39 次）、4（28）、6（22）、1（14）、10（4）、
 - 關掉詳細檢視會連 zoom 一起清掉，下一張從 Fit 開始。
 - 影片（F16 尚未實作）沒有 preview：畫布仍註冊 `canvas:detail`，控制列仍可驅動，圖片區顯示 `No preview available`。
 
+## Add Folder 瀏覽器（`button:browse-folder`）
+
+原型只有「Add Folder」輸入框與兩個按鈕；打路徑對人太難，所以加了一顆 `button:browse-folder` 開一個
+懸浮視窗。**這是對原型的增補**，不是原型裡的畫面，記錄在此以免日後被當成設計漂移。
+
+| 元件 | 幾何（實測） |
+|---|---|
+| 視窗 | `default_pos (520,170)`、內容寬 340 px、`panel:browser` 高隨內容（3 列時 151 px） |
+| 目前路徑 | 12 px secondary 文字，註冊 `info:browser-path`（用 label 自己的 rect） |
+| 目錄列 | 26 px 高（`size::ROW_HEIGHT`）、`dir:<名稱>`；有媒體檔時顯示 `名稱  ·  N` |
+| 卷軸區 | 高 300 px，`browser:scroll` |
+| 按鈕列 | `Up` / `Cancel` / `Scan`，26 px 高、按鈕間距 15 px（`CONTROL_INLINE` 兩份） |
+| 空目錄 | 顯示 `No folders inside`，但 `Scan` 仍可用（加入空目錄是合理的） |
+| 讀不到目錄 | 視窗內顯示 `cannot read <path>: <原因>`，註冊 `info:browser-error` |
+
+規則：
+- 列目錄的規則在 `spectrum_core::folder_browser`：只列**目錄**、跳過 `.` 開頭、依名稱大小寫不分排序；
+  每個目錄帶「它自己那一層有幾個媒體檔」，**不遞迴**（遞迴數一個大庫就是這張畫面最不能有的停頓）。
+- 一切變動仍走 `folder.add`：重複的目錄會被擋（`BadParam`）、`notice_text()` 顯示原因、**視窗保持開著**。
+- 起點是「目前資料夾的上一層」，資料庫沒有資料夾時用 `HOME`。
+- `Scan` 用 accent（主操作），`Browse…` 不用 accent — 未選取時畫面不該出現 accent（由 Q02 的像素斷言守著）。
+- 拖曳資料夾走 `RawInput::dropped_files`（egui 0.36 是 `DroppedFileHandle`，不是 `Event::DropFiles`）；
+  測試直接塞一個實作 `DroppedFile` 的結構，不需要 OS 拖曳。
+
 ## 鍵盤操作
 
 | 按鍵 | 行為 | 走的命令 |
@@ -190,12 +220,13 @@ radius 分佈：5（39 次）、4（28）、6（22）、1（14）、10（4）、
 | `←` `→` | 可見清單裡前後一個 | `select.move {"direction": "left|right", "columns": N}` |
 | `↑` `↓` | 上下一個**列**（N = 實際欄數） | 同上，`up` / `down` |
 | `Home` / `End` | 第一個 / 最後一個（無選取時 `End` 直接落最後、其餘落第一個） | 同上 |
-| `Esc` | 詳細檢視開著時先關掉它，否則清空選取 | `detail.close` / `select.clear` |
-| `Enter` | path 欄有焦點時提交路徑；否則對**唯一選取**開詳細檢視 | `folder.add` / `detail.open` |
+| `Esc` | 順序由上而下：開著「Add Folder」瀏覽器時先關它；否則詳細檢視開著時關掉它；再否則清空選取 | 關瀏覽器不經命令 / `detail.close` / `select.clear` |
+| `Enter` | path 欄有焦點時提交路徑；瀏覽器開著時（且 path 欄沒焦點）確認目前目錄；否則對**唯一選取**開詳細檢視 | `folder.add`（兩次都是）/ `detail.open` |
 | `Ctrl/⌘ + +` / `−` | 詳細檢視裡放大 / 縮小 | `detail.zoom {"action": "in|out", "current": scale}` |
 | 畫布拖曳 | 平移圖片 | 不經命令（pan 是 UI 狀態） |
 | `Ctrl/⌘ + 滾輪` | 以畫布為基準放大 | `detail.zoom` |
 | 一般滾輪 | 平移 | 同上 |
+| 拖曳**資料夾**到視窗 | 加入資料庫並開啟它；拖檔案進來會被忽略（資料庫只收目錄） | `folder.add` |
 
 規則：
 - 全部經 `dispatch()`，不直接改 model；越界時命令回 `{"moved": false}` 且**不改選取**（不是錯誤）。
@@ -209,7 +240,8 @@ radius 分佈：5（39 次）、4（28）、6（22）、1（14）、10（4）、
 每個 id 都必須在每幀的 registry 裡出現（前綴結尾的 `:` 表示「至少一個該前綴的 id」）。
 `crates/spectrum-app/tests/registry.rs` 會讀下面四個區塊：`ids` 是 grid 畫面每幀都要有，`ids-on-selection`
 是「有選取時必須出現、沒選取時必須不存在」，`ids-on-detail` 是「詳細檢視開著時必須出現、關掉時必須
-不存在」。區塊讀不到或為空會被當失敗（避免空心 checklist）。
+不存在」。`ids-on-browser` 由 `crates/spectrum-app/tests/add_folder.rs` 讀，條件是「瀏覽器開著時必須
+出現、關掉時必須不存在」。區塊讀不到或為空會被當失敗（避免空心 checklist）。
 `ids` 是 **grid 畫面**每幀都要有；詳細檢視會**取代**同一欄的工具列與 grid，所以開著時那些 id 必須
 不存在（由 `ids-on-detail` 測試斷言）。`ids-always` 是兩種畫面都要有的最小清單（標題列、側欄、
 資料夾列與輸入框）。
@@ -250,8 +282,20 @@ sidebar:scroll
 button:rescan
 field:add-path
 button:add-folder
+button:browse-folder
 button:remove-folder
 folder:
+```
+
+```ids-on-browser
+# 只有在「Add Folder」瀏覽器開著時存在；關閉時必須都不存在
+panel:browser
+info:browser-path
+browser:scroll
+button:browser-up
+button:browser-cancel
+button:browser-scan
+dir:
 ```
 
 ```ids-on-detail

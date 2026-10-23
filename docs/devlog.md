@@ -1,4 +1,24 @@
 # Development log
+## 2026-08-03 — F20：Add Folder 從「打路徑」變成「選目錄」
+
+**問題：** 側欄只能打字輸入路徑。macOS 原版用 `NSOpenPanel`（`canChooseDirectories = true`、`allowsMultipleSelection`、prompt 寫 "Scan"），外加側欄拖曳與 `--add-folder` CLI；Linux 沒有對應的原生目錄選擇器，也不打算引入（會把 GTK/xdg 拉進來）。
+
+**做法：** 自己做一個 in-app 目錄瀏覽器。
+* `spectrum-core/src/folder_browser.rs`：只列**目錄**（檔案不能加入資料庫）、跳過 `.` 開頭、不分大小寫排序；每個目錄帶「自己那一層有幾個媒體檔」，**不遞迴**——遞迴數一個大庫就是這張畫面最不能有的停頓。讀不到時回傳原因字串，視窗顯示它，否則空清單會被誤讀成空資料夾。
+* `spectrum-app/src/browser.rs`：懸浮視窗（路徑、26 px 目錄列、`Up`/`Cancel`/`Scan`、`No folders inside`、`cannot read …`）。
+* 所有變動仍走 `folder.add`：重複被擋、原因進 `notice_text()`、**視窗保持開著**（「它關了卻什麼都沒出現」是這裡最糟的結果）；成功才關視窗並清掉輸入框。
+* 拖曳資料夾走 `RawInput::dropped_files`（egui 0.36 給的是 `DroppedFileHandle`，**不是** `Event::DropFiles`）；測試塞一個實作 `DroppedFile` 的結構即可，不需要 OS 拖曳。
+* `Esc` 的優先次序改成：瀏覽器 → 詳細檢視 → 清空選取；`Enter` 在瀏覽器開著且 path 欄沒焦點時等於按 `Scan`。
+
+**量測（registry rect，kittest 1440×900）：** `panel:browser` 340×151（三列時）；目錄列 h=26（`size::ROW_HEIGHT`）；按鈕列 h=26、間距 15 px；`browser:scroll` h=300。
+
+**兩個被測試抓到的真錯：**
+1. `info:browser-path` 原本用 `ui.cursor()` 註冊，得到 `[[527,224]-[867,inf]]` —— `cursor()` 是「下一個控件的起點」，垂直排版沒有下界；控制通道對它 `ui.click` 會點到不存在的位置。改成控件自己的 `Response::rect`。
+2. `button:browse-folder` 傳了 `active = true`，於是未選取時畫面出現 accent，Q02 的「未選取時不該有 accent」斷言立刻紅。這條斷言剛好是为了抓这种事而寫的。
+
+**量測過的設計影響：** snapshot 基線的變化範圍是 `bbox (18,206)-(118,271)`，只有側欄那塊（多一顆 `Browse…`、`Remove folder` 往下移）；grid／toolbar／inspector 一個像素都沒動。原型側欄本來只有兩顆按鈕，`Browse…` 是對原型的增補，已記錄在 `docs/ui-spec.md`。
+
+**還沒做：** 一次加多個目錄（macOS 的 panel 可多選）、拖曳限定在側欄而非整窗。
 ## 2026-08-03 — Q02：廉價像素斷言走 token，不走抄來的 hex
 
 **問題：** snapshot 基線只能告訴人「畫面跟昨天不一樣」，不能告訴人「哪一個結構色不見了」。

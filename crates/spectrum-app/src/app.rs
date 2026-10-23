@@ -34,6 +34,7 @@ use spectrum_core::sort::{SortDirection, SortKey};
 use spectrum_core::timeline::civil_from_days;
 use spectrum_core::{dispatch, InspectorTab, Library, ViewMode};
 
+use crate::browser::{self, Browser};
 use crate::control::{self, Inbox};
 use crate::detail::{self, CanvasState};
 use crate::theme::{self, Tokens};
@@ -122,6 +123,8 @@ pub struct AppState {
     detail_textures: HashMap<(std::path::PathBuf, SceneTransform), TextureHandle>,
     detail_asked: HashSet<(std::path::PathBuf, SceneTransform)>,
     detail_failed: HashSet<(std::path::PathBuf, SceneTransform)>,
+    /// The "Add Folder" browser window, while it is open.
+    browser: Option<Browser>,
     /// Frames left to keep asking for the jump. Selecting the first file also brings the inspector
     /// up, which narrows the grid and resets the offset in that same frame, so one frame is not
     /// enough: two frames land the jump after the layout has settled.
@@ -147,6 +150,7 @@ impl AppState {
             inbox: None,
             store_path: None,
             path_focused: false,
+            browser: None,
             scroll_focus: None,
             scroll_hold: 0,
             canvas: CanvasState::default(),
@@ -166,6 +170,17 @@ impl AppState {
     /// The next queued batch, for the integration to put in `RawInput` before the pass starts.
     pub fn take_events(&mut self) -> Vec<Event> {
         self.pending.pop_front().unwrap_or_default()
+    }
+
+    /// The directory the browser is showing, if it is open. Tests read this instead of painted text.
+    pub fn browser_path(&self) -> Option<&std::path::PathBuf> {
+        self.browser.as_ref().map(Browser::path)
+    }
+
+    /// Open the browser on a given directory. Tests use this to land somewhere specific instead of
+    /// clicking through every parent directory.
+    pub fn open_browser_at(&mut self, path: std::path::PathBuf) {
+        self.browser = Some(Browser::new(path));
     }
 
     /// Wire the control channel (`--control <port>`). Tests drive [`control::handle`] directly
@@ -188,6 +203,12 @@ impl AppState {
     }
 
     /// The list index of a folder path, or the active folder when the path is not listed.
+    /// Why the last rejected command failed, if it did. The status bar shows this; tests read it
+    /// rather than matching painted text.
+    pub fn notice_text(&self) -> Option<&str> {
+        self.notice.as_deref()
+    }
+
     pub fn folder_index(&self, path: &std::path::Path) -> usize {
         self.lib
             .folders
@@ -460,6 +481,7 @@ impl AppState {
     pub fn ui(&mut self, ui: &mut Ui) {
         let tokens = self.tokens;
         theme::apply(ui.ctx());
+        self.take_dropped_folders(ui);
         self.handle_detail_keys(ui);
 
         let titlebar = Panel::top("titlebar")
@@ -595,6 +617,17 @@ impl AppState {
                     });
                 widgets::register(ui, "grid:scroll", scroll.inner_rect, "scroll");
             });
+
+        // The browser is a floating window, so it draws after the panels that own the layout.
+        let action = self
+            .browser
+            .as_mut()
+            .map(|browser| browser::draw(ui.ctx(), &tokens, browser));
+        match action {
+            Some(browser::Action::Open) => self.scan_current_browser(),
+            Some(browser::Action::Close) => self.browser = None,
+            Some(browser::Action::Nothing) | None => {}
+        }
 
         self.write_screenshots(ui);
         // Publish what this frame drew, in the order it was drawn. `ui()` does it, not `render()`:
@@ -753,6 +786,13 @@ impl AppState {
         let wants_add = add.clicked() || enter_pressed;
         if wants_add && !path.is_empty() && self.run("folder.add", json!({"path": path})) {
             self.add_path.clear();
+        }
+        ui.add_space(space::CONTROL_INLINE);
+        // Typing a path is enough, but nobody should have to remember paths: this opens the
+        // directory browser on the folder above the one being viewed.
+        if widgets::control_button(ui, tokens, "button:browse-folder", "Browse…", false).clicked()
+        {
+            self.browser = Some(Browser::start_at(self.lib.folder()));
         }
         ui.add_space(space::CONTROL_INLINE);
         if widgets::control_button(ui, tokens, "button:remove-folder", "Remove folder", false)
@@ -930,6 +970,19 @@ impl AppState {
     /// there is nothing to close), Ctrl/⌘ + `+`/`-` zooms. These are handled outside the grid because
     /// the detail view draws no tiles, so the grid's own key handler would never run.
     fn handle_detail_keys(&mut self, ui: &Ui) {
+        // The browser outranks everything else: Escape backs out of the topmost thing the user is
+        // looking at, and Enter confirms its current directory rather than opening the selected
+        // photo behind it.
+        if self.browser.is_some() {
+            if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
+                self.browser = None;
+                return;
+            }
+            if !self.path_focused && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
+                self.scan_current_browser();
+                return;
+            }
+        }
         if self.path_focused {
             return;
         }
@@ -961,6 +1014,35 @@ impl AppState {
     fn zoom_request(&mut self, action: &str) {
         let current = self.canvas.scale as f64;
         self.run("detail.zoom", json!({"action": action, "current": current}));
+    }
+
+    /// Add the directory the browser is showing. On failure the window stays open and the reason is
+    /// the notice, because "it closed and nothing appeared" is the worst possible outcome here.
+    fn scan_current_browser(&mut self) {
+        let Some(path) = self.browser.as_ref().map(Browser::path).cloned() else {
+            return;
+        };
+        if self.run("folder.add", json!({"path": path.to_string_lossy()})) {
+            self.browser = None;
+            self.add_path.clear();
+        }
+    }
+
+    /// A folder dropped on the window joins the library, the way the reference's sidebar accepts a
+    /// drop. Files are ignored: the library takes directories, not loose photos.
+    fn take_dropped_folders(&mut self, ui: &Ui) {
+        let dropped: Vec<std::path::PathBuf> = ui.input(|i| {
+            i.raw
+                .dropped_files
+                .iter()
+                .map(|file| file.path().to_path_buf())
+                .collect()
+        });
+        for path in dropped {
+            if path.is_dir() {
+                self.run("folder.add", json!({"path": path.to_string_lossy()}));
+            }
+        }
     }
 
     /// The single-image canvas: strip, then the frame at its own size.
