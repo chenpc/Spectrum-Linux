@@ -13,11 +13,11 @@ Spectrum 是 macOS Spectrum（Sony HLG 照片／影片檢視器，約 23.5k 行 
 ## 不可妥協
 
 ### 參考碼與素材
-- macOS Swift 碼在 `/home/chenpc/git/spectrum-macos-ref`，**只當行為參考**：可以讀、可以對照，
+- macOS Swift 碼在 repo 外的本地參考複製（`~/git/spectrum-macos-ref`），**只當行為參考**：可以讀、可以對照，
   但 **不得把任何 Swift 檔案 commit 或 push** 到 `Spectrum-Linux`。
 - **不得 commit 個人照片、個人路徑或真實媒體**。測試素材一律由 `crates-testkit`（`spectrum-testkit`）
   程序生成。外部素材若要測，走 sha256 pin 的 corpus（gitignored），缺席就 `skip!` 並記錄。
-  `/home/chenpc/Pictures/...` 這類資料夾只能作為執行參數，不出現在 repo、fixture 或文件裡。
+  `~/Pictures/...` 這類資料夾只能作為執行參數，不出現在 repo、fixture 或文件裡。
 - 字型、圖示、任何 asset 必須是自己画的或可再分散的授權，並在 `docs/dependencies.md` 記來源。
 
 ### 不會 crash

@@ -1027,7 +1027,7 @@ UI：`Ui` 新增 `import_list`、`import_scroll`、`import_model`、`import_rows
 
 **類型：** Bug fix
 
-**問題：** 拿 `/home/chenpc/Pictures/阿明逛夜市`（24 張 iPhone HEIC + 1 張 Sony HIF + 7 支影片）跑 `cargo xtask scan`，結果回報 **0 HDR**、每張照片的 transfer 都是 `unspecified`，但這些檔案在 macOS Spectrum 裡是 HDR。
+**問題：** 拿使用者的一批手機拍攝檔（24 張 iPhone HEIC + 1 張 Sony HIF + 7 支影片，路徑只在命令列參數裡）跑 `cargo xtask scan`，結果回報 **0 HDR**、每張照片的 transfer 都是 `unspecified`，但這些檔案在 macOS Spectrum 裡是 HDR。
 
 **根因／做法：**
 - `IMG_5034.HEIC` 的 `ipco` 裡有 **4 個 `colr`**：前兩個是 Display P3／純描述 profile，第三個的 `cicp` 是 `p12 t8`（BT.2020 primaries + BT.709 transfer，SDR），第四個才是 `p12 t16`（BT.2020 10-bit + PQ）並帶 `hdgm`／`gmap` gain-map 中繼資料。`find_icc()` 只取第一個 → HDR 訊號被丟掉。

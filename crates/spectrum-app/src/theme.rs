@@ -95,7 +95,7 @@ pub fn strong(size: f32) -> FontId {
 }
 
 /// A face for scripts Inter has no glyphs for. Folder names here are Chinese, and egui draws a
-/// missing glyph as a tofu box, so the titlebar used to show `□□□□□` for `阿明逛夜市`. A ~20 MB CJK
+/// missing glyph as a tofu box, so the titlebar used to show `□□□□□` for a Chinese folder name. A ~20 MB CJK
 /// face is not vendored into the repo; a system font is used instead, and `SPECTRUM_CJK_FONT`
 /// overrides the search (e.g. `…/arphic/uming.ttc` for a Traditional-Chinese-shaped face).
 pub const CJK_FAMILY: &str = "CJK fallback";
