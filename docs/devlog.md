@@ -1,4 +1,27 @@
 # Development log
+## 2026-08-03 — Q02：廉價像素斷言走 token，不走抄來的 hex
+
+**問題：** snapshot 基線只能告訴人「畫面跟昨天不一樣」，不能告訴人「哪一個結構色不見了」。
+
+**做法：** `crates/spectrum-app/tests/pixels.rs` 用 `theme::Tokens::photos()` 取色（tokens 由設計檔產生），容差沿用 snapshot 的 2 LSB，對大面積色塊計數。
+
+**量測（1440×900，14 個合成檔案）：** grid 的 tile 色 366 899 px、window 白 595 609 px、distinct 715；選取後 accent 3 068 px，未選取時 accent **0 px**；detail 畫布色 873 345 px，grid 只有 145 px。斷言就照這些數字寫：非空白（distinct > 200）、tile 色 > 100 000 px 且整窗不是單色、選取前後 accent < 100 → > 1 000、detail 畫布色 > 500 000 px 且 grid < 5 000 px。
+
+**量測到的限制：** 文字 token（`label #1d1d1f`）在畫面上 0 px —— 小字全被反鋸齒吃掉，所以這類斷言只能挑色塊，不能挑文字色；想驗證文字存在得靠 snapshot 或 AccessKit 的 `Label`（Q01 已做）。
+## 2026-08-03 — Q01：AccessKit audit，以及它抓到的一件真事
+
+**問題：** registry 的 id 是控制通道點東西的唯一座標，AccessKit 樹是螢幕閱讀器看到的東西。兩邊沒有綁在一起時，一個 TCP 上能用的 id 可能對不用滑鼠的人完全不存在。
+
+**做法：** `crates/spectrum-app/tests/accesskit.rs` 把 `state.widgets`（registry 承諾）跟 `harness.root()` 的 AccessKit 樹對起來，共 6 個 test：
+`button:*` / `segment:*:label` / `folder:*` 必須各自對應一個同邊界且 `label` 非空的 `Button` 節點，而且兩邊**數量相等**（實測 18 對 18）——這條的價值在未來：把控件改成純繪製會立刻斷掉。`field:add-path` 是 `TextInput`，accessible name 來自 hint（樹裡實測 `placeholder=Some("Folder path")`，egui 把 hint 放進 placeholder 而不是 label）。格子的檔名、metadata 行、`SDR` badge 都以 `Label` 出現，所以讀得到。AccessKit 的 press 會走 `dispatch`：對 `"HDR / SDR toggle"` 節點 `click_accesskit()` 之後 `lib.hdr_enabled` 真的翻了。選取與 detail 切換時樹跟著變（無選取時沒有 `Restore`；開 detail 後 `Clear filter` 消失、`1:1` 出現）。
+
+**先量測才寫斷言，所以抓到的都是真的：**
+* 整棵樹 111 個節點：57 `GenericContainer`、26 `Button`、13 `TextRun`、12 `Label`、2 `Unknown`、1 `TextInput`。26 個 `Button` 全部有 label，沒有任何互動節點沒有名字。
+* **沒有 `Slider` 節點**：`widgets::slider_row` 存在但沒有任何呼叫端，inspector 的 Adjust 頁目前只有按鈕（rotate／flip／restore／trash／HDR toggle）。所以「slider 必有 value/range」那條規則目前沒有對象，等 F05/F08 做滑杆時必須一併用真控件。
+* `group:<key>` 是 clickable `Label`，角色是 `Label` 不是 `Button`；它登記的 rect 是整列（標題＋數量），樹裡是兩個節點，所以 audit 對 row 用「節點在 rect 內且文字含年份」而不是邊界相等。
+* **格子可讀不可點**：tile 是繪製的，樹裡沒有可 press 的節點，靠鍵盤導覽（F02）才能選取。記成 backlog Q08。
+
+**順帶：** 用 `label=<None>` 這種猜的 format 去 grep 量測輸出會得到「全部都有 label」的假結論，AccessKit 的 Debug 是 `label=None`／`label=Some("…")`；第一次的結論就是這樣錯的，重量才知道 26 個 Button 確實都有名字。
 
 ## 2026-08-02 — F07：tone-mapping，以及 loader 實際交回來的是什麼
 
@@ -615,7 +638,7 @@ e2e 守住：`heif_icc_cicp.heic`（nclx 2/2 + profile `Display P3` + cicp(9,18,
 **根因／做法：**
 
 - `crates/spectrum-gtk/src/app.rs`：`list_scroll.set_min_content_height(200)`，rotate/flip/save 三個按鈕合成一個橫向 `edit_row`（`set_homogeneous(true)`），視窗預設尺寸 900×420 → 900×520。
-- 快照測試改為先把可解碼的那列捲進可视區再斷言：row 的 `bounds()` 是 list 自己的座標系，所以可見性要拿 **scroll offset**（`vadjustment().value()`）比較，不是拿 viewport 的 native bounds 比較（一開始用後者會誤判 `row (0,432,348,23) viewport (0,0,348,200)`）。
+- 快照測試改為先把可解碼的那列捲進可視區再斷言：row 的 `bounds()` 是 list 自己的座標系，所以可見性要拿 **scroll offset**（`vadjustment().value()`）比較，不是拿 viewport 的 native bounds 比較（一開始用後者會誤判 `row (0,432,348,23) viewport (0,0,348,200)`）。
 - 新增 `red_pixels(path, max_x)`（用 `gdk_pixbuf::Pixbuf` 讀快照 PNG）斷言側欄確實渲染出縮圖 — 只斷言「row 可見」不夠，picture 節點要有真正的 paint pass 才會進快照，所以測試在斷言前 `queue_draw()` + pump 60 次。
 - `list_scroll.set_overlay_scrolling(false)`：overlay scrollbar 的淡入/淡出是動畫，會讓快照 byte 數在 29090 / 28980 之間跳（10 次跑約 2 次不一致）；關掉後 10/10 相同。
 
@@ -901,7 +924,7 @@ e2e 守住：`e2e_gtk_folder_list_cache_is_reused_until_invalidate`（`/tmp/spec
 
 新增 `crates/spectrum-core/src/undo.rs`：
 
-- `Change { path, ops_before, ops_after }` — 記錄「变更前後的 ops 清單」而不是反向 op，語義完全精確（ops 清單就是 UI 實際渲染的內容）
+- `Change { path, ops_before, ops_after }` — 記錄「變更前後的 ops 清單」而不是反向 op，語義完全精確（ops 清單就是 UI 實際渲染的內容）
 - `UndoStack` 兩堆疊：`record()` 推入 undo 並**清空 redo**（標準行為）；`undo()` 彈出到 redo 堆；`redo()` 彈回 undo 堆
 - `record()` 跳過 no-op（`ops_before == ops_after`），避免空變更污染歷史
 - `apply(path, ops_before, op)` 記錄並回傳新的 ops 清單
@@ -1017,7 +1040,7 @@ UI：`Ui` 新增 `import_list`、`import_scroll`、`import_model`、`import_rows
 
 **修改的檔案：** `crates/spectrum-core/src/model.rs`（新）、`crates/spectrum-core/src/command.rs`（新）、`crates/spectrum-core/src/lib.rs`、`crates/spectrum-core/Cargo.toml`（`serde_json`）、`crates/spectrum-core/tests/command.rs`（新，14 tests）。
 
-**測試：** 14 個：registry id 唯一且 metadata 完整、`describe()` 全覆盖、未知 id 的錯誤訊息含 id、`view.set` 改 model 且壞參數不改 model、`hdr.toggle` 讓 HLG badge 變 SDR、選取語意（out-of-range 丟棄、ctrl toggle、shift 延伸、拒絕不改選取）、月份／年份 key 驗證與可见數、群組縮合互不影響、filter/sort 改變可见且拒絕保留前值、編輯需要恰好一張選取、**原檔 byte-identical**、crop 越界/零寬拒絕且不寫 sidecar、trash 移動後 rescan + 清選取 + status 文字、非 object 參數一律拒絕不 panic。
+**測試：** 14 個：registry id 唯一且 metadata 完整、`describe()` 全覆蓋、未知 id 的錯誤訊息含 id、`view.set` 改 model 且壞參數不改 model、`hdr.toggle` 讓 HLG badge 變 SDR、選取語意（out-of-range 丟棄、ctrl toggle、shift 延伸、拒絕不改選取）、月份／年份 key 驗證與可见數、群組縮合互不影響、filter/sort 改變可见且拒絕保留前值、編輯需要恰好一張選取、**原檔 byte-identical**、crop 越界/零寬拒絕且不寫 sidecar、trash 移動後 rescan + 清選取 + status 文字、非 object 參數一律拒絕不 panic。
 
 ---
 

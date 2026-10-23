@@ -19,7 +19,7 @@
 - 附带：啟動時自動 `rescan`（目前要手按 Rescan）。
 
 ### F02 — 鍵盤導覽與快捷鍵
-- [x] 完成（2026-10-23）：命令 `select.move`（direction + columns）與 `select.clear`；UI 在 `tiles()` 裡以實際欄數處理 ← → ↑ ↓ Home End Esc，並把選中的磁磚捲進可視區（`scroll_hold` 2 幀）。測試：`crates/spectrum-core/tests/select_move.rs`(9)、`crates/spectrum-app/tests/keyboard.rs`(6)。快捷键表見 `docs/ui-spec.md`「鍵盤操作」。
+- [x] 完成（2026-10-23）：命令 `select.move`（direction + columns）與 `select.clear`；UI 在 `tiles()` 裡以實際欄數處理 ← → ↑ ↓ Home End Esc，並把選中的磁磚捲進可視區（`scroll_hold` 2 幀）。測試：`crates/spectrum-core/tests/select_move.rs`(9)、`crates/spectrum-app/tests/keyboard.rs`(6)。快捷鍵表見 `docs/ui-spec.md`「鍵盤操作」。
 - macOS：方向鍵/Return/⌘ 快捷鍵選取與開圖。
 - 現況：`nav.rs`(43) 有 `next_index`/`row_col`，但 `app.rs` 完全沒用（`core_use=0`、`app_use=0`）。UI 只處理 Enter（add-folder 輸入框）與點擊的 ctrl/shift。**沒有方向鍵選取、沒有 ⌘/Ctrl 快捷鍵、沒有 PageUp/PageDown。**
 - 要動：把 `nav::next_index` 接進 `grid:*` 的焦點邏輯；加 `select.next`/`select.prev` 命令（走 dispatch，不直接改 model）；快捷鍵表寫進 `docs/ui-spec.md`。
@@ -108,12 +108,12 @@
 - [ ] 未完成 — **需要使用者決策**
 - macOS：`VideoController`(355) + `VideoPlayerNSView`(136) + `VideoControlBar`(110) + `LivePhotoPlayerView`(93)。
 - 現況：`mp4.rs`(157) 只解析 colr/transfer 等元資料；不能播放，tile 也沒有 duration。
-- 決策點：播放必然引入非純 Rust 依賴（gstreamer 或 ffmpeg）。選項 (a) 允許 gstreamer 外掛、(b) 只顯示首幀 + 元資料、(c) 整塊延後。選完才开工。
+- 決策點：播放必然引入非純 Rust 依賴（gstreamer 或 ffmpeg）。選項 (a) 允許 gstreamer 外掛、(b) 只顯示首幀 + 元資料、(c) 整塊延後。選完才開工。
 
 ### F17 — 陀螺儀穩定（360° 內容）
 - [ ] 未完成
 - macOS：`GyroCore.swift`(456) + `GyroConfig.swift`。
-- 現況：完全沒有。Linux 端要讀 IMU/姿勢來源（`linuxptp`? 沒有標準 API）→ 需要可行性研究，不是直接开工的項目。
+- 現況：完全沒有。Linux 端要讀 IMU/姿勢來源（`linuxptp`? 沒有標準 API）→ 需要可行性研究，不是直接開工的項目。
 
 ### F18 — HLG 匯出
 - [ ] 未完成
@@ -130,13 +130,27 @@
 ## 測試與紀律缺口（Q）
 
 ### Q01 — L3 AccessKit audit
-- [ ] 未完成
-- 要動：走 kittest 的 AccessKit 樹，斷言互動節點必有 name、slider 必有 value/range、可鍵盤到達。基礎已鋪好（badge 文字改成真 `Label` 就是為了這個）。
+- [x] 完成
+- 做了：`crates/spectrum-app/tests/accesskit.rs`（6 test）。走整棵 AccessKit 樹，把 **widget registry 承諾的 id** 跟樹裡節點對起來：
+  - `button:*` / `segment:*:label` / `folder:*`（18 個）必須各自對應一個**同邊界**的 `Button` 節點，且 `label` 非空；两边數量必須相等，所以日後把控件改成純繪製會被這條擋下。
+  - `field:add-path` 是 `TextInput`，accessible name 來自 hint（`placeholder="Folder path"`）。
+  - `group:<key>` 是 clickable `Label`（不是 Button），節點落在 registry rect 內且文字含年份。
+  - 格子（tile）的檔名、 metadata 行、`SDR`/`HDR` badge 都以 `Label` 出現在樹裡 → 螢幕閱讀器讀得到。
+  - AccessKit 的 press 會走 `dispatch`：對 `"HDR / SDR toggle"` 節點 `click_accesskit()` 之後 `lib.hdr_enabled` 真的翻了。
+  - 選取/詳細視圖切換時樹會跟著變（無選取時沒有 `Restore`；開 detail 後 toolbar 的 `Clear filter` 消失、`1:1` 出現）。
+- 還欠（新增 Q08）：tile 是繪製的，樹裡沒有可操作節點 — 可讀但不可點，靠鍵盤導覽選取（F02）補。
 
-### Q02 — L5 廉价像素斷言
-- [ ] 未完成
-- 現況：只有 snapshot 基線比對（`library_all.png`、`detail_adjust.png`）。
-- 要動：`harness.render()` 之後斷言「畫面不是空白」+「設計 token 顏色存在」（accent `#0b6fe0`、tile `#e9e9eb`），基線漂了也能先抓到結構問題。
+### Q08 — tile 對 assistive tech 不可操作
+- [ ] 未開始
+- 由 Q01 的實測發現：格子是 `widgets::tile` 繪製的，AccessKit 樹裡只有檔名／metadata／badge 的 `Label`，沒有可 press 的節點。控制通道與滑鼠能選，螢幕閱讀器不能。
+- 要動：把 tile 改成 `ui.put(rect, Sense::click())` 之類會產生節點的控件（或給 tile 一個透明 `Button` 覆蓋層），然後在 `tests/accesskit.rs` 把 tile 加進 button 集合。
+
+### Q02 — L5 廉價像素斷言
+- [x] 完成
+- 做了：`crates/spectrum-app/tests/pixels.rs`（4 test）。顏色一律從 `theme::Tokens::photos()` 取（token 由設計檔產生），所以斷言跟著設計走，不是抄 hex；容差沿用 snapshot 的 2 LSB。
+- 量測到的數字（1440×900）：grid 螢幕 tile 色 366 899 px、window 白 595 609 px、distinct 715；選取之後 accent 3 068 px（**未選取時 accent 是 0 px**，設計如此）；detail 畫布色 873 345 px，而 grid 只有 145 px。
+- 斷言：非空白（distinct > 200）、格子區被 tile 色填滿（> 100 000 px）且不是整窗單色、選取才會出現 accent（before < 100、after > 1 000）、detail 畫布色 > 500 000 px 而 grid < 5 000 px。
+- 注意：文字 token（`label #1d1d1f`）在螢幕上 0 px —— 小字全是反鋸齒，所以斷言只挑大面積色塊，不挑文字色。
 
 ### Q03 — L6 soak
 - [ ] 未完成

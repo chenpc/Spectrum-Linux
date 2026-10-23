@@ -151,7 +151,7 @@ radius 分佈：5（39 次）、4（28）、6（22）、1（14）、10（4）、
 5. **`Ui::put` 會推進父 ui 的 cursor**：把 badge 用 `put` 疊在磁磚上，下一塊磁磚就從 pill 的右緣開始（實測 x 從 432 變成 306）。改成先在 `allocate_ui_with_layout(164×164)` 的子 ui 裡摆 content，父層 pitch 才不會被影響。
 6. **畫出來的文字對 AccessKit 不存在**：badge 用 `painter.text` 之後，`query_all_by_label("HDR")` 變成 0 個。pill 底色可以畫，文字必須是真的 `Label`。
 7. **`egui_kittest` 會把 app 包在 `outer_margin(8)` 的 Frame 裡**，所以測試裡每個面板都往內縮 8 px（1440 px 畫面只有 6 欄，真視窗是 7 欄）。欄位數改用設計自己的寬度驗（`grid_columns_match_the_design_widths`），畫面測試則斷言「不能空整欄」。
-8. **詳細檢視取代同一欄的 toolbar/grid**：所以 `ids`（grid 清單）與 `ids-always`（標題列、側欄、資料夾列）分開列，`registry.rs::always_ids_survive_the_detail_view` 斷言開著時 grid 的 id **不存在**、關掉後又回來 — 腳本才不会點到沒畫的東西。
+8. **詳細檢視取代同一欄的 toolbar/grid**：所以 `ids`（grid 清單）與 `ids-always`（標題列、側欄、資料夾列）分開列，`registry.rs::always_ids_survive_the_detail_view` 斷言開著時 grid 的 id **不存在**、關掉後又回來 — 腳本才不會點到沒畫的東西。
 9. **`ui.allocate_rect` 必須在蓋在它上面的圖片之後**：egui 把游標交給「最後一個 rect 包含游標」的元件，圖片先画、畫布rect 後分配，拖曳才落在畫布上（實測順序反過來時 `dragged()` 永遠 false、pan 都是 0）。
 10. **`count_and_consume_key(COMMAND, …)` 不認得只有 `ctrl` 的按鍵**：`Modifiers::cmd_ctrl_matches` 要求 pattern 的 `command` 位也設置；egui 的 `i.modifiers` 又只由 `ModifiersChanged` 事件更新（注入的 `Event::Key` 不更新它）。所以 zoom 快捷鍵同時試 `CTRL` 與 `COMMAND` 兩個 pattern（`zoom_key`）。
 11. **egui 的拖曳距離是從「上一幀記住的按下位置」算的**：把 press/move/release 塞進同一批事件只會得到一次點擊；測試裡先輸一幀純 `PointerMoved` 清掉上一次點擊的按下位置，再把 press / move / release 分幀送（實測未清時 70 px 的拖曳量測成 +284 px）。
@@ -188,7 +188,7 @@ radius 分佈：5（39 次）、4（28）、6（22）、1（14）、10（4）、
 | 按鍵 | 行為 | 走的命令 |
 |---|---|---|
 | `←` `→` | 可見清單裡前後一個 | `select.move {"direction": "left|right", "columns": N}` |
-| `↑` `↓` | 上下一个**列**（N = 實際欄數） | 同上，`up` / `down` |
+| `↑` `↓` | 上下一個**列**（N = 實際欄數） | 同上，`up` / `down` |
 | `Home` / `End` | 第一個 / 最後一個（無選取時 `End` 直接落最後、其餘落第一個） | 同上 |
 | `Esc` | 詳細檢視開著時先關掉它，否則清空選取 | `detail.close` / `select.clear` |
 | `Enter` | path 欄有焦點時提交路徑；否則對**唯一選取**開詳細檢視 | `folder.add` / `detail.open` |
@@ -201,7 +201,7 @@ radius 分佈：5（39 次）、4（28）、6（22）、1（14）、10（4）、
 - 全部經 `dispatch()`，不直接改 model；越界時命令回 `{"moved": false}` 且**不改選取**（不是錯誤）。
 - `columns` 由繪圖當下的實際欄數傳入（`columns_for_width(wrap_width)`），所以 `↓` 跟畫面的列對得起來；有 inspector 時欄數會變少，這是对的。
 - path 欄有焦點時導航鍵不進格子（`path_focused`），否則輸入路徑時會把選取搬走。
-- 鍵盤移動後會對該磁磚 `scroll_to_rect_animation(..., ScrollAnimation::none())`，連續要求 2 幀（`scroll_hold`）：第一次選取同時出現 inspector 会让網格變窄、該幀的 offset 會被重置，1 幀不夠。
+- 鍵盤移動後會對該磁磚 `scroll_to_rect_animation(..., ScrollAnimation::none())`，連續要求 2 幀（`scroll_hold`）：第一次選取同時出現 inspector 會讓網格變窄、該幀的 offset 會被重置，1 幀不夠。
 - egui 的 `TextEdit` 預設 `return_key = Enter` 會**吃掉** Enter，所以 path 欄用 `.return_key(None)`，Enter 由 app 自己判（並要求焦點）。另外 `typed.clicked()` 曾經會直接提交路徑 — 點一下輸入框就會改資料夾清單，已修（`tests/keyboard.rs` 有回歸測試）。
 
 ## 元件 id 清單（addressability）

@@ -8,7 +8,7 @@
 **1. 可位址性（addressability）是自動化能力的根基**
 LightCraft 每個互動元件每幀都會向一個 registry 註冊穩定 id 與 rect：
 `crates/ui-egui/src/widgets.rs` 的 `register(ctx, id, rect)` 寫進 `ctx.data`，app 把它收成
-`app.widgets: Vec<(String, Rect)>`。控製協議把這份清單公開成 `ui.widgets {filter}`，点擊用
+`app.widgets: Vec<(String, Rect)>`。控制協議把這份清單公開成 `ui.widgets {filter}`，點擊用
 `ui.clickWidget {id}`，找不到就回 `no widget <id> on screen (see ui.widgets)`。
 測試與 agent 都用 id 操作，不用座標、不用文字比對。id 同時出現在 parity checklist，`cargo xtask
 parity` 在 CI 檢查引用的 id 是否還存在。
@@ -32,7 +32,7 @@ slider 沒有 value 與 range → fail、canvas 工具鍵盤無法到達 → fai
 **5. 像素比對只比「完全穩定」的幀，且容差有理由**
 `settle()` 逾時就 fail，因為半渲染的圖會出現誤導性的 pixel diff。兩次 run 比對時容差設 2 LSB，
 理由是同一張照片可能一次走 GPU、一次走 CPU fallback。斷言不是「圖一樣」，而是「哪些像素、為什麼可以不同」。
-另有「不是空白」的廉价斷言：distinct colours > 200、top bar 有亮字 > 30 px、`thumb_textures() > 0`。
+另有「不是空白」的廉價斷言：distinct colours > 200、top bar 有亮字 > 30 px、`thumb_textures() > 0`。
 
 **6. 跳過必須可稽核**
 libtest 沒有 skipped 狀態。`lightcraft_testkit::skip!(Gpu, "why")` 除了印訊息，還把
@@ -67,9 +67,9 @@ stderr 的 `rendering headlessly`（`ui.screenshot` 2 秒沒 frame 會自動退�
 | L0 | core 單元：XMP round-trip、HLG 訊號偵測、timeline 分組、selection 語意、thumbnail LRU、trash | `cargo test -p spectrum-core` | 是 | 完成 |
 | L1 | 命令層：每個 command id 的 dispatch、guard、參數錯誤回可行動的錯誤、拒絕時不改 model | `cargo test -p spectrum-core --test command`（26 條命令）；JSON-lines 外殼已用 `--control` + `cargo xtask control` | 是 | 完成 |
 | L2 | UI 行為：透過 label/rect 驅動 grid 選取、view 切換、HDR badge、inspector tab；縮圖解碼上螢幕 | `egui_kittest`（含 `tests/thumbnails.rs` 的像素斷言） | 是 | 完成 |
-| L3 | UI 結構 audit：AccessKit tree 裡互動節點必有 name、slider 必有 value/range、可鍵盤到達 | `egui_kittest` AccessKit | 是 | **未做** → `docs/backlog.md` Q01 |
+| L3 | UI 結構 audit：AccessKit tree 裡互動節點必有 name、registry 的每個 id 都對得上 tree 節點 | `egui_kittest` AccessKit | 是 | **完成**：`crates/spectrum-app/tests/accesskit.rs`（6 test）。本專案目前沒有 slider，故 value/range 那條還沒有對象；見 backlog Q01 的「還欠」 |
 | L4 | 可位址性：每幀 registry 必含預期 id（`panel:sidebar`、`grid:scroll`、`tile:<name>`、`badge:<name>`、`segment:view`）；只在選取時出現的 id 記在 `ids-on-selection`（`panel:inspector`…）；id 缺就 fail | registry 斷言（讀 `docs/ui-spec.md` 的兩個區塊） | 是 | 完成 |
-| L5 | 像素 snapshot：headless 渲染、`settle` 後比，容差 2 LSB；「非空白」廉价斷言 | `Headless` + `egui_kittest::snapshot` | 是 | 部分：snapshot 完成，廉价斷言 **未做** → Q02 |
+| L5 | 像素 snapshot：headless 渲染、`settle` 後比，容差 2 LSB；「非空白」廉價斷言 | `Headless` + `egui_kittest::snapshot` | 是 | **完成**：snapshot 基線 + `crates/spectrum-app/tests/pixels.rs`（4 test，顏色取自 `theme::Tokens`，不是抄的 hex） |
 | L6 | soak：種子隨機輸入 + 不變量（無 panic、texture cache ≤ 600、journal 有界、平均幀 ≤ 250 ms） | `egui_kittest` | 短跑進 CI，長跑 `--ignored` | **未做** → Q03 |
 | L7 | 色彩參考值：合成 HEIF fixture → HLG tone-map 輸出 vs 手算參考值，`max_diff ≤ 1` | core + CPU 參考實作 | 是（不依賴 GPU） | **未做** → Q04（依賴 backlog F07） |
 | L8 | corpus：外部素材 sha256 pin；缺席時 `skip!(Corpus, ...)` 記錄 | `xtask corpus` | 是（記錄跳過） | **未做** → Q05 |
@@ -97,8 +97,8 @@ stderr 的 `rendering headlessly`（`ui.screenshot` 2 秒沒 frame 會自動退�
 3. **`logic(ctx)` / `ui(ui)` 分離**：✅ 已完成（`logic` 先答控製請求 + `begin_frame`，`ui` 畫 + 發布 registry + 寫 screenshot event）。
 4. **控製通道**：✅ 已完成（`--control <port>`、JSON-lines、`cargo xtask control|shot`；事件走 `RawInput`，不依賴 OS 合成輸入）。
 5. **registry 斷言**（L4）：✅ 已完成（讀 `docs/ui-spec.md` 的 `ids` / `ids-on-selection` 兩個區塊）。
-6. **L5 snapshot**：✅ 已完成（`library_all.png`、`detail_adjust.png`）；廉价像素斷言 → backlog Q02。
+6. **L5 snapshot**：✅ 已完成（`library_all.png`、`detail_adjust.png`）；廉價像素斷言 → backlog Q02。
 7. **testkit `skip!`** + `xtask ci` 的 `report.json`／`summary.md` → backlog Q05/Q06。
-8. **AccessKit audit**（L3）→ backlog Q01；**soak**（L6）→ Q03。
+8. **AccessKit audit**（L3）→ 已完成（backlog Q01）；**soak**（L6）→ Q03。
 
 `theme.rs` 與 `widgets.rs` 已接進完整畫面（不再是草稿）。功能缺口另見 `docs/backlog.md`（F##）。
