@@ -40,6 +40,7 @@ use crate::theme::{self, Tokens};
 use crate::thumbs::Worker;
 use crate::tokens::{radius, size, space, text};
 use crate::widgets::{self, TileSpec, Widget};
+use spectrum_core::tone_map::SceneTransform;
 
 const VIEWS: [ViewMode; 3] = [ViewMode::All, ViewMode::Months, ViewMode::Years];
 const TABS: [InspectorTab; 2] = [InspectorTab::Adjust, InspectorTab::Info];
@@ -95,12 +96,14 @@ pub struct AppState {
     /// The decode thread. Only the real window creates it, so a snapshot never depends on when a
     /// decode finishes.
     thumb_worker: Option<Worker>,
-    /// Uploaded thumbnails, keyed by file.
-    thumbs: HashMap<std::path::PathBuf, TextureHandle>,
-    /// Files already asked for, so a frame never queues the same decode twice.
-    thumb_asked: HashSet<std::path::PathBuf>,
-    /// Files the loader refused (a video, an unknown format). They stay placeholders.
-    thumb_failed: HashSet<std::path::PathBuf>,
+    /// Uploaded thumbnails, keyed by file *and* the transform they were asked for: turning HDR
+    /// presentation on and off must not throw the other version away, and a tile must never be drawn
+    /// from the wrong presentation.
+    thumbs: HashMap<(std::path::PathBuf, SceneTransform), TextureHandle>,
+    /// Asked-for and refused `(file, transform)` pairs: a frame never queues the same decode twice,
+    /// and a refused file stays a placeholder.
+    thumb_asked: HashSet<(std::path::PathBuf, SceneTransform)>,
+    thumb_failed: HashSet<(std::path::PathBuf, SceneTransform)>,
     /// Where the folder list is persisted. `None` means "do not persist", which is what a test gets
     /// unless it sets a store path explicitly.
     store_path: Option<std::path::PathBuf>,
@@ -115,11 +118,10 @@ pub struct AppState {
     /// The zoom the canvas last centred on; a change re-centres the picture. `Option<Option<_>>`
     /// because "fit" (`None`) is a value of its own.
     zoom_seen: Option<Option<f32>>,
-    /// Full-size frames for the detail view, keyed by file.
-    detail_textures: HashMap<std::path::PathBuf, TextureHandle>,
-    /// Files already asked for at detail size, and files the loader refused at that size.
-    detail_asked: HashSet<std::path::PathBuf>,
-    detail_failed: HashSet<std::path::PathBuf>,
+    /// Full-size frames for the detail view, also keyed by transform.
+    detail_textures: HashMap<(std::path::PathBuf, SceneTransform), TextureHandle>,
+    detail_asked: HashSet<(std::path::PathBuf, SceneTransform)>,
+    detail_failed: HashSet<(std::path::PathBuf, SceneTransform)>,
     /// Frames left to keep asking for the jump. Selecting the first file also brings the inspector
     /// up, which narrows the grid and resets the offset in that same frame, so one frame is not
     /// enough: two frames land the jump after the layout has settled.
@@ -313,24 +315,26 @@ impl AppState {
                     let image =
                         ColorImage::from_rgba_unmultiplied([w as usize, h as usize], &pixels);
                     let name = if full_size {
-                        format!("detail {}", job.path.to_string_lossy())
+                        format!("detail {} {:?}", job.path.to_string_lossy(), job.transform)
                     } else {
-                        job.path.to_string_lossy().into_owned()
+                        format!("{} {:?}", job.path.to_string_lossy(), job.transform)
                     };
                     let texture = ctx.load_texture(name, image, TextureOptions::LINEAR);
+                    let key = (job.path, job.transform);
                     if full_size {
-                        self.detail_failed.remove(&job.path);
-                        self.detail_textures.insert(job.path, texture);
+                        self.detail_failed.remove(&key);
+                        self.detail_textures.insert(key, texture);
                     } else {
-                        self.thumb_failed.remove(&job.path);
-                        self.thumbs.insert(job.path, texture);
+                        self.thumb_failed.remove(&key);
+                        self.thumbs.insert(key, texture);
                     }
                 }
                 None => {
+                    let key = (job.path, job.transform);
                     if full_size {
-                        self.detail_failed.insert(job.path);
+                        self.detail_failed.insert(key);
                     } else {
-                        self.thumb_failed.insert(job.path);
+                        self.thumb_failed.insert(key);
                     }
                 }
             }
@@ -338,61 +342,82 @@ impl AppState {
 
         // Grid tiles: three per frame, because one HEIC costs ~850 ms and queuing everything would
         // pile up work nobody has looked at yet.
-        let mut missing: Vec<std::path::PathBuf> = Vec::new();
+        let mut missing: Vec<(std::path::PathBuf, SceneTransform)> = Vec::new();
         for index in self.lib.visible() {
-            let path = self.lib.entries[index].path.clone();
-            if self.thumbs.contains_key(&path)
-                || self.thumb_failed.contains(&path)
-                || self.thumb_asked.contains(&path)
+            let key = (
+                self.lib.entries[index].path.clone(),
+                self.transform_for(index),
+            );
+            if self.thumbs.contains_key(&key)
+                || self.thumb_failed.contains(&key)
+                || self.thumb_asked.contains(&key)
             {
                 continue;
             }
-            missing.push(path);
+            missing.push(key);
             if missing.len() >= 3 {
                 break;
             }
         }
         if let Some(worker) = self.thumb_worker.as_ref() {
-            for path in &missing {
-                worker.request(path.clone());
+            for (path, transform) in &missing {
+                worker.request(path.clone(), *transform);
             }
         }
-        // Without a worker (a snapshot test) the paths are still recorded, so nothing is asked for
+        // Without a worker (a snapshot test) the keys are still recorded, so nothing is asked for
         // again on a frame that can never be answered.
         self.thumb_asked.extend(missing);
 
         // The detail view asks for the open file once, at full size.
         if let Some(index) = self.lib.detail_index() {
-            let path = self.lib.entries[index].path.clone();
-            if !self.detail_textures.contains_key(&path)
-                && !self.detail_failed.contains(&path)
-                && !self.detail_asked.contains(&path)
+            let key = (
+                self.lib.entries[index].path.clone(),
+                self.transform_for(index),
+            );
+            if !self.detail_textures.contains_key(&key)
+                && !self.detail_failed.contains(&key)
+                && !self.detail_asked.contains(&key)
             {
                 if let Some(worker) = self.thumb_worker.as_ref() {
-                    worker.request_at(path.clone(), DETAIL_SIDE, DETAIL_CAPACITY);
+                    worker.request_at(key.0.clone(), DETAIL_SIDE, DETAIL_CAPACITY, key.1);
                 }
-                self.detail_asked.insert(path);
+                self.detail_asked.insert(key);
             }
         }
+    }
+
+    /// Which presentation an entry's pixels need this frame. Tone-mapping applies only when HDR
+    /// presentation is on **and** the file's signalling describes the image data itself: a frame the
+    /// loader already rendered must not be darkened a second time. See
+    /// `spectrum_core::tone_map::scene_transform`.
+    fn transform_for(&self, index: usize) -> SceneTransform {
+        if !self.lib.hdr_enabled {
+            return SceneTransform::None;
+        }
+        self.lib
+            .entries
+            .get(index)
+            .and_then(|entry| entry.signal.as_ref())
+            .map(spectrum_core::tone_map::scene_transform)
+            .unwrap_or(SceneTransform::None)
     }
 
     /// The decoded full-size frame for the open file, cloned out of the map so the canvas can be
     /// borrowed mutably while it is drawn.
     fn detail_texture(&self) -> Option<TextureHandle> {
         let index = self.lib.detail_index()?;
-        self.lib
-            .entries
-            .get(index)
-            .and_then(|entry| self.detail_textures.get(&entry.path))
+        let entry = self.lib.entries.get(index)?;
+        self.detail_textures
+            .get(&(entry.path.clone(), self.transform_for(index)))
             .cloned()
     }
 
-    /// The decoded thumbnail for an entry, if there is one.
+    /// The decoded thumbnail for an entry, in the presentation it is currently supposed to be shown
+    /// in.
     fn thumbnail(&self, index: usize) -> Option<&TextureHandle> {
-        self.lib
-            .entries
-            .get(index)
-            .and_then(|e| self.thumbs.get(&e.path))
+        let entry = self.lib.entries.get(index)?;
+        self.thumbs
+            .get(&(entry.path.clone(), self.transform_for(index)))
     }
 
     /// The one-call path a test harness uses: think, then draw. `eframe` calls the two halves

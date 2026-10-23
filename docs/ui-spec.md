@@ -156,7 +156,12 @@ radius 分佈：5（39 次）、4（28）、6（22）、1（14）、10（4）、
 10. **`count_and_consume_key(COMMAND, …)` 不認得只有 `ctrl` 的按鍵**：`Modifiers::cmd_ctrl_matches` 要求 pattern 的 `command` 位也設置；egui 的 `i.modifiers` 又只由 `ModifiersChanged` 事件更新（注入的 `Event::Key` 不更新它）。所以 zoom 快捷鍵同時試 `CTRL` 與 `COMMAND` 兩個 pattern（`zoom_key`）。
 11. **egui 的拖曳距離是從「上一幀記住的按下位置」算的**：把 press/move/release 塞進同一批事件只會得到一次點擊；測試裡先輸一幀純 `PointerMoved` 清掉上一次點擊的按下位置，再把 press / move / release 分幀送（實測未清時 70 px 的拖曳量測成 +284 px）。
 12. **平移的上限是圖片超出畫布的一半**：比畫布小的圖片不能平移（永遠置中），比較大的拖到邊緣就停 — 不會出現一條背景色（`clamp_pan`、`panning_stops_at_the_picture_edges`）。
-13. **eframe 對不可見視窗不跑 pass**：`ui.screenshot`（`ViewportCommand::Screenshot`）要由 pass 執行，而本機 Xwayland（mutter）把視窗標為不可見，所以請求會逾時（`request_nudged` 每 120ms `request_repaint`、5s 回報原因，`main.rs` 另有 300ms 心跳）。自動化渲染改用 `harness.render()` 讀真實像素。
+13. **HDR 顯示（`button:hdr` / `hdr.toggle`）的語意是「把 scene-referred 壓進 SDR 範圍」**：開啟時
+    HLG/PQ 檔案的像素經 `spectrum_core::tone_map`，關閉時直接顯示檔案編碼值（不認識 HDR 的檢視器看到的
+    樣子）。只有 `nclx`（HEIF）與 `cICP`（PNG）——描述影像資料本身的訊號——會觸發轉換；ICC profile 推斷
+    的訊號不會，因為 loader 已把那些檔案渲染成顯示就緒畫面。texture 以 `(path, transform)` 為 key，来回
+    切換不重新解碼（像素證據：`crates/spectrum-app/tests/hdr.rs`）。
+14. **eframe 對不可見視窗不跑 pass**：`ui.screenshot`（`ViewportCommand::Screenshot`）要由 pass 執行，而本機 Xwayland（mutter）把視窗標為不可見，所以請求會逾時（`request_nudged` 每 120ms `request_repaint`、5s 回報原因，`main.rs` 另有 300ms 心跳）。自動化渲染改用 `harness.render()` 讀真實像素。
 
 ## 詳細檢視（本實作新增）
 

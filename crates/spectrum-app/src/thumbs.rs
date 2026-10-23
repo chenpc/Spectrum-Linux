@@ -24,20 +24,25 @@ use std::sync::mpsc::{self, Receiver, Sender};
 use std::thread::{self, JoinHandle};
 
 use spectrum_core::thumbnail::ThumbnailService;
+use spectrum_core::tone_map::{self, SceneTransform};
 
-/// A decode request: which file, how long its longest side may be, and how many frames of that size
-/// may be kept. The grid asks for 164 px; the detail view asks for the frame at its own size, and
+/// A decode request: which file, how long its longest side may be, how many frames of that size may
+/// be kept, and what the pixels should become. The grid asks for 164 px; the detail view asks for the frame at its own size, and
 /// those must not share a cache or a full-size frame would push every tile out of it.
 pub struct Request {
     pub path: PathBuf,
     pub max: u32,
     pub capacity: usize,
+    /// What the caller wants the pixels turned into. The cache always holds the file's own encoded
+    /// frame, so asking for the same file at two transforms costs one decode.
+    pub transform: SceneTransform,
 }
 
 /// A finished decode: pixels on success, the loader's message on failure.
 pub struct Job {
     pub path: PathBuf,
     pub max: u32,
+    pub transform: SceneTransform,
     pub rgba: Option<(u32, u32, Vec<u8>)>,
     pub error: Option<String>,
 }
@@ -65,12 +70,23 @@ impl Worker {
                     ThumbnailService::with_capacity(request.max, request.capacity)
                 });
                 let (rgba, error) = match service.get(&request.path) {
-                    Ok((decoded, _)) => (Some((decoded.width, decoded.height, decoded.rgba)), None),
+                    Ok((decoded, _)) => (
+                        Some((
+                            decoded.width,
+                            decoded.height,
+                            // Tone-mapping happens here, not in a frame: it is a pass over every
+                            // pixel, and a tile's frame is small enough that the UI thread should
+                            // never pay for it.
+                            tone_map::apply_scene_transform(&decoded.rgba, request.transform),
+                        )),
+                        None,
+                    ),
                     Err(message) => (None, Some(message)),
                 };
                 let job = Job {
                     path: request.path,
                     max: request.max,
+                    transform: request.transform,
                     rgba,
                     error,
                 };
@@ -90,23 +106,25 @@ impl Worker {
 
     /// Ask for a file at the worker's default size. The caller tracks what it already asked for, so
     /// this never queues twice.
-    pub fn request(&self, path: PathBuf) {
+    pub fn request(&self, path: PathBuf, transform: SceneTransform) {
         self.requests
             .send(Request {
                 path,
                 max: self.default_max,
                 capacity: self.default_capacity,
+                transform,
             })
             .ok();
     }
 
     /// Ask for a file at a specific size and cache budget.
-    pub fn request_at(&self, path: PathBuf, max: u32, capacity: usize) {
+    pub fn request_at(&self, path: PathBuf, max: u32, capacity: usize, transform: SceneTransform) {
         self.requests
             .send(Request {
                 path,
                 max,
                 capacity,
+                transform,
             })
             .ok();
     }

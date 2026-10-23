@@ -1,5 +1,40 @@
 # Development log
 
+## 2026-08-02 — F07：tone-mapping，以及 loader 實際交回來的是什麼
+
+**問題：** `hdr.toggle` 只換 badge，畫面沒有任何色彩變化——HLG/PQ 檔案就是照著檔案裡的編碼值直接顯示。
+
+**先量測，因為量測結果決定了設計。** glycin 0.8 自己的 `Transform` 只有
+`Icc | ImageProfile | Nclx | GainMap | ChromaPosition | ExifOrientation`，根本沒有 HLG/PQ transfer 這一類。
+對 `IMG_5053.HEIC`（經 ICC profile 判為 PQ，`cicp_color_primaries=9, transfer=16`）分別要求
+`R8g8b8` 與 `R16g16b16`、`apply_transformations` 開與關，取回的值**完全相同**、所有通道 ≤ 1.0、
+mean 0.604。也就是說 loader 交回的是已經處理成顯示就緒的畫面，再套一層 tone-map 只會把本來正確的
+圖壓暗。因此 `crates/spectrum-core/tests/tone_map.rs` 的 `only_scene_referred_signalling_gets_a_transform`
+用一個只有 ICC `cicp` tag 的 HEIF fixture 斷言「profile 推斷出的訊號不得授權 tone-mapping」；會授權的只有 `nclx`（它描述的是 image item 本身）與 PNG 的 `cICP` chunk，理由相同。
+
+**實作**在 `crates/spectrum-core/src/tone_map.rs`（334 行）：PQ EOTF/OETF（ST 2084 常數寫成分數，
+`c1 = 3424/4096`、`c3 = 76544/4096`——一開始誤寫成 `3420/4096`，讓 100 nit 的中間調在編碼域偏移
+0.011，被參考值 test 擋下）、HLG EOTF/OETF（BT.2100 Table 6）、sRGB EOTF/OETF、BT.709↔BT.2020
+矩陣（用公布矩陣求逆，test 斷言兩個矩陣相乘等於單位矩陣、D65 灰色不變色）、extended Reinhard
+壓縮、ISO 21496-1 `gain_map_blend`。`tone_map_frame` 在縮圖執行緒跑，不佔用 UI 執行緒；texture
+快取以 `(path, transform)` 為 key，所以切換顯示模式不會重新解碼。
+
+**用公開數值驗證，不是自己跟自己一致：** PQ 把 100 cd/m² 編碼為 0.5080762（±2e-6）、1000 cd/m² 為
+0.7515776；把 0.5080762 解回 100.0 nit；HLG 把峰值的 1/12 編碼為恰好 0.5；HLG EOTF 在 knee 處連續
+到 1.2e-6。
+
+**UI 證據。** `crates/spectrum-app/tests/hdr.rs` 用帶 `cICP`（`colour_primaries 9,
+transfer_function 18`）的 PNG fixture，其像素 loader 不會動。開啟 HDR 顯示時該檔案的格子畫出
+`[217, 130, 36]`（fixture 的 `[188, 120, 60]` 獨立算出的 tone-map 結果），關掉時畫出
+`[188, 120, 60]`，同一檔案的 detail canvas 也跟著變。同目錄另一個宣告
+`transfer_function 13`（sRGB）的 fixture 兩種模式下都畫 `[188, 120, 60]`，證明 tone-map 沒有無差別套用。
+
+**還沒做完：** gain-map 展開只有純函式與 test，沒有呼叫端，因為 loader 只交回 base image。檔案沒有
+mastering metadata 時 PQ 的峰值假設為 1000 cd/m²，所以 4000 nit 的母帶是用猜的壓縮——曲線对中間調
+掩蓋了誤差，對高光沒有。視訊 HDR（F16）完全還沒有路徑。
+
+---
+
 ## 2026-10-07 — XMP 讀取永遠回 None（self-closing 元素）
 
 **類型：** Bug Fix

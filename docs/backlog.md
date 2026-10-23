@@ -46,18 +46,20 @@
 - [x] 完成（核心 + UI + 測試）
 - macOS：`Views/Detail/PhotoDetailView.swift`(1138) + `PhotoInfoPanel.swift`(591)。
 - 現況：`crates/spectrum-app/src/detail.rs`（250 行）— 控制列 `−` / `1:1` / `Fit` / `+` / `NN%` / `Close`，畫布拖曳平移、`Ctrl/⌘ + 滾輪`縮放；model 加 `detail` / `detail_zoom`，命令 `detail.open`（需 sole 選取）/ `detail.close` / `detail.zoom`；全圖由 thumbs worker 以長邊 2400 解（與 grid 的 164 分開快取、最多持 4 張）；registry `canvas:detail`、`panel:detail-strip` 與 6 個按鈕 id，`ids-on-detail` / `ids-always` 由 `tests/registry.rs` 驗（開著時 grid 的 id 必須不存在）。
-- 還欠：上一張 / 下一張導航（macOS 有 34×34 圓形按鈕）、全螢幕、F16 的影片 preview、F07 tone-map 的落點（現在畫布顯示的是 sRGB 解碼結果）。
+- 還欠：上一張 / 下一張導航（macOS 有 34×34 圓形按鈕）、全螢幕、F16 的影片 preview。（F07 tone-map 已落在畫布與格子：見 F07。）
 
 ### F07 — HDR tone-mapping 與顯示模式（HLG / PQ / gain-map）
-- [ ] 未完成
+- [x] 完成（CPU 參考實作 + 接到縮圖與單圖 + 測試）
 - macOS：`AVFMetalView`(1192) + `MetalShaders`(247) + `HDRImageViews`(87)。
-- 現況：`hdr.rs`(330) **只偵測**訊號（cicp PQ/HLG、ICC dmnd、gain-map `hdgm`；修好之後 24 檔判為 HDR）。`hdr.toggle` 只改顯示模式與 badge，**沒有任何色彩轉換、沒有 GPU 輸出、沒有 headroom 呈現**。
-- 要動：CPU 參考實作（HLG OETF/EOTF、PQ、gain-map blend）＋ `docs/testing.md` L7 的參考值測試（`max_diff ≤ 1`）；再決定要不要 wgpu shader。這是本專案最大的技術缺口。
+- 做了：`crates/spectrum-core/src/tone_map.rs`(334) — PQ/HLG/sRGB EOTF 與 OETF、BT.709↔BT.2020 矩陣、extended Reinhard 壓縮、ISO 21496-1 `gain_map_blend`；`png.rs` 讀 `cICP`。縮圖執行緒在解碼後套 `apply_scene_transform`，texture 快取以 `(path, transform)` 為 key，切換顯示模式不重新解碼。
+- 授權條件：只有 `nclx`（HEIF）與 `cICP`（PNG）會觸發轉換。ICC profile 推斷的訊號不會——量測顯示 glycin 對那些檔案已交回顯示就緒的畫面（見 devlog 2026-08-02）。
+- 測試：15 個數學 test 用公開參考值（PQ 100 nit→0.5080762、1000 nit→0.7515776、HLG 峰值 1/12→0.5、矩陣相乘＝單位矩陣、knee 連續 1.2e-6）；2 個 UI test 用像素（`crates/spectrum-app/tests/hdr.rs`：HLG fixture 格子 `[217,130,36]` ↔ `[188,120,60]`，sRGB fixture 兩種模式都不變）。
+- 還欠：gain-map 展開沒有呼叫端（loader 只交回 base image）；無 mastering metadata 時 PQ 峰值假設 1000 nit；GPU（wgpu）輸出與 headroom 呈現；視訊 HDR 屬 F16。
 
 ### F08 — 互動裁剪 UI
 - [ ] 未完成
 - macOS：`CropOverlayView.swift`(302)。
-- 現況：`crop.rs`(58) 有 `CropRect`（含 rotated/flipped 換算）、`edit.crop` 命令存在，但 **UI 沒有任何裁剪控製**；`app.rs:540` 註解自己留了「if a second input is added (crop fields, search), gate this on the field's focus」。
+- 現況：`crop.rs`(58) 有 `CropRect`（含 rotated/flipped 換算）、`edit.crop` 命令存在，但 **UI 沒有任何裁剪控制**；`app.rs:540` 註解自己留了「if a second input is added (crop fields, search), gate this on the field's focus」。
 - 要動：裁剪模式（拖框、8 個把手、比例預設、套用/取消），全部走 dispatch；registry id `crop:*`。
 
 ### F09 — 匯入面板
@@ -72,7 +74,7 @@
 - 現況：`search.rs`(100) 有 `normalize_query`/`search`，沒接 UI，也沒有 `search.set` 命令。
 - 要動：titlebar/toolbar 的搜尋欄（`field:search`）+ 命令 + 結果過濾走 `filter`。
 
-### F11 — 剪贴簿：複製／搬移到資料夾
+### F11 — 剪貼簿：複製／搬移到資料夾
 - [ ] 未完成
 - macOS：`Services/FolderClipboard.swift`。
 - 現況：`clipboard.rs`(90) 有 `set_clipboard`/`paste`/`rename_dir`（含 collision 計數），**命令層沒有 `clip.copy`/`clip.cut`/`clip.paste`**，UI 沒有入口。

@@ -89,7 +89,8 @@ pub fn detect_icc(path: &Path) -> Option<crate::icc::IccInfo> {
 /// Colour signalling for one file, from the header only (no pixel decode).
 ///
 /// HEIF/HEIC and MP4/MOV use the ISO 14496-12 `colr`/`nclx` box; JPEG uses EXIF + the ICC profile
-/// description. PNG/WebP have no transfer-function signalling here, so they return None.
+/// description; PNG uses the `cICP` chunk, which describes the image data itself. WebP has no
+/// signalling here, so it returns None.
 pub fn detect_signal(path: &Path) -> Option<ImageSignal> {
     let ext = path.extension()?.to_string_lossy().to_ascii_lowercase();
     let data = std::fs::read(path).ok()?;
@@ -99,6 +100,9 @@ pub fn detect_signal(path: &Path) -> Option<ImageSignal> {
             let nclx = find_colr(&data).and_then(parse_colr);
             let icc = crate::icc::pick_icc(&find_icc_profiles(&data));
             crate::hdr::signal_for_heif(nclx.as_ref(), icc.as_ref())
+        }
+        "png" => {
+            crate::png::cicp(&data).and_then(|nclx| crate::hdr::signal_for_heif(Some(&nclx), None))
         }
         _ => None,
     }

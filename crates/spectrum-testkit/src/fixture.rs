@@ -616,6 +616,24 @@ fn png_chunk(out: &mut Vec<u8>, typ: &[u8], data: &[u8]) {
 
 /// Minimal valid PNG (solid colour) — glycin can decode it, so it works as a thumbnail fixture.
 pub fn synthetic_png(w: u32, h: u32, rgb: [u8; 3]) -> Vec<u8> {
+    synthetic_png_inner(w, h, rgb, None)
+}
+
+/// PNG with a `cICP` chunk (PNG's registered colour-signalling chunk): primaries, transfer,
+/// matrix, full-range flag, in that order, as defined by PNG 1.1 / ITU-T H.273 codes. This is how
+/// a fixture can declare HLG or PQ without an ICC profile, which is what the tone-mapping tests
+/// need: the pixels stay exactly what was written, and the loader's colour signalling says HDR.
+pub fn synthetic_png_with_cicp(
+    w: u32,
+    h: u32,
+    rgb: [u8; 3],
+    primaries: u8,
+    transfer: u8,
+) -> Vec<u8> {
+    synthetic_png_inner(w, h, rgb, Some([primaries, transfer, 0, 1]))
+}
+
+fn synthetic_png_inner(w: u32, h: u32, rgb: [u8; 3], cicp: Option<[u8; 4]>) -> Vec<u8> {
     let row = rgb.repeat(w as usize);
     let mut raw = Vec::with_capacity(h as usize * (row.len() + 1));
     for _ in 0..h {
@@ -655,6 +673,9 @@ pub fn synthetic_png(w: u32, h: u32, rgb: [u8; 3]) -> Vec<u8> {
     ihdr.extend_from_slice(&h.to_be_bytes());
     ihdr.extend_from_slice(&[8, 2, 0, 0, 0]); // bit depth 8, colour type 2 (RGB)
     png_chunk(&mut out, b"IHDR", &ihdr);
+    if let Some(cicp) = cicp {
+        png_chunk(&mut out, b"cICP", &cicp);
+    }
     png_chunk(&mut out, b"IDAT", &zlib);
     png_chunk(&mut out, b"IEND", b"");
     out
@@ -669,5 +690,25 @@ pub fn write_png_fixture(
 ) -> PathBuf {
     let path = dir.join(name);
     std::fs::write(&path, synthetic_png(w, h, rgb)).unwrap();
+    path
+}
+
+/// `cICP` PNG on disk: `primaries`/`transfer` are ITU-T H.273 codes (9 = BT.2020, 18 = HLG,
+/// 16 = PQ, 13 = sRGB).
+pub fn write_png_fixture_cicp(
+    dir: &std::path::Path,
+    name: &str,
+    w: u32,
+    h: u32,
+    rgb: [u8; 3],
+    primaries: u8,
+    transfer: u8,
+) -> PathBuf {
+    let path = dir.join(name);
+    std::fs::write(
+        &path,
+        synthetic_png_with_cicp(w, h, rgb, primaries, transfer),
+    )
+    .unwrap();
     path
 }
