@@ -99,6 +99,11 @@ impl InspectorTab {
 
 /// One folder in the sidebar list. `count` is known once that folder has been scanned (the active
 /// one always is; the others keep the count they had when they were last opened).
+/// Zoom bounds for the single-image view, shared by the command registry and the canvas so the
+/// clamp and the buttons agree.
+pub const DETAIL_MIN_SCALE: f32 = 0.02;
+pub const DETAIL_MAX_SCALE: f32 = 16.0;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FolderSlot {
     pub path: PathBuf,
@@ -125,6 +130,12 @@ pub struct Library {
     pub selection: Selection,
     pub view: ViewMode,
     pub tab: InspectorTab,
+    /// The file shown in the single-image view, `None` when the grid is what the user is looking at.
+    /// Kept in the model so opening, closing and zooming are registry commands with testable
+    /// semantics rather than a flag the drawing code flips.
+    pub detail: Option<usize>,
+    /// Displayed pixels per source pixel; `None` means fit the canvas.
+    pub detail_zoom: Option<f32>,
     /// Off = tone-map everything to SDR; on = files whose signalling is HDR show in HDR.
     pub hdr_enabled: bool,
     pub filter: Filter,
@@ -151,6 +162,8 @@ impl Library {
             selection: Selection::default(),
             view: ViewMode::default(),
             tab: InspectorTab::default(),
+            detail: None,
+            detail_zoom: None,
             hdr_enabled: true,
             filter: Filter::default(),
             year: None,
@@ -233,6 +246,10 @@ impl Library {
         }
         self.selection.set.retain(|&i| i < self.entries.len());
         self.selection.primary = self.selection.primary.filter(|&i| i < self.entries.len());
+        if self.detail.is_some_and(|index| index >= self.entries.len()) {
+            self.detail = None;
+            self.detail_zoom = None;
+        }
     }
 
     /// Display order: filtered, then sorted, then year-limited.
@@ -318,6 +335,13 @@ impl Library {
         set.dedup();
         self.selection.primary = set.last().copied();
         self.selection.set = set;
+    }
+
+    /// The file the detail view shows, but only while exactly one item is selected and it is that
+    /// item: multi-select or a rescan that dropped the file puts the grid back.
+    pub fn detail_index(&self) -> Option<usize> {
+        let detail = self.detail?;
+        (self.sole() == Some(detail)).then_some(detail)
     }
 
     pub fn mode_for(&self, index: usize) -> DisplayMode {

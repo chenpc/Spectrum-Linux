@@ -29,6 +29,8 @@ Library 的 `Months`/`Years` 與 `Memories`/`Shared Albums` 導向對應 screen�
 | Photo grid | 縮圖 164×164，gap 2 |
 | Viewer（Detail） | padding 26，垂直 gap 16，置中對齊 |
 | Photo（Detail） | 780×540，radius 2；左右導航按鈕 34×34，radius 17，`#ffffff@60%` |
+| Detail 控制列（本實作） | 高 38（26 px 控製 + 上下 6），`−` `1:1` `Fit` `+` `NN%` `Close` |
+| Detail 畫布（本實作） | 佔滿 main 那一欄剩餘高度；底色 `detail`（`#f7f7f8`）；zoom 0.02–16；全圖解到長邊 2400 |
 | Caption | 垂直 gap 3 |
 | Inspector | 寬 260，padding `[12, 14, 12, 14]`，垂直 gap 14 |
 | Inspector tabs | 高 26，容器 `gap 2` / `padding 2`，選項高 22 |
@@ -149,7 +151,32 @@ radius 分佈：5（39 次）、4（28）、6（22）、1（14）、10（4）、
 5. **`Ui::put` 會推進父 ui 的 cursor**：把 badge 用 `put` 疊在磁磚上，下一塊磁磚就從 pill 的右緣開始（實測 x 從 432 變成 306）。改成先在 `allocate_ui_with_layout(164×164)` 的子 ui 裡摆 content，父層 pitch 才不會被影響。
 6. **畫出來的文字對 AccessKit 不存在**：badge 用 `painter.text` 之後，`query_all_by_label("HDR")` 變成 0 個。pill 底色可以畫，文字必須是真的 `Label`。
 7. **`egui_kittest` 會把 app 包在 `outer_margin(8)` 的 Frame 裡**，所以測試裡每個面板都往內縮 8 px（1440 px 畫面只有 6 欄，真視窗是 7 欄）。欄位數改用設計自己的寬度驗（`grid_columns_match_the_design_widths`），畫面測試則斷言「不能空整欄」。
-8. **eframe 對不可見視窗不跑 pass**：`ui.screenshot`（`ViewportCommand::Screenshot`）要由 pass 執行，而本機 Xwayland（mutter）把視窗標為不可見，所以請求會逾時（`request_nudged` 每 120ms `request_repaint`、5s 回報原因，`main.rs` 另有 300ms 心跳）。自動化渲染改用 `harness.render()` 讀真實像素。
+8. **詳細檢視取代同一欄的 toolbar/grid**：所以 `ids`（grid 清單）與 `ids-always`（標題列、側欄、資料夾列）分開列，`registry.rs::always_ids_survive_the_detail_view` 斷言開著時 grid 的 id **不存在**、關掉後又回來 — 腳本才不会點到沒畫的東西。
+9. **`ui.allocate_rect` 必須在蓋在它上面的圖片之後**：egui 把游標交給「最後一個 rect 包含游標」的元件，圖片先画、畫布rect 後分配，拖曳才落在畫布上（實測順序反過來時 `dragged()` 永遠 false、pan 都是 0）。
+10. **`count_and_consume_key(COMMAND, …)` 不認得只有 `ctrl` 的按鍵**：`Modifiers::cmd_ctrl_matches` 要求 pattern 的 `command` 位也設置；egui 的 `i.modifiers` 又只由 `ModifiersChanged` 事件更新（注入的 `Event::Key` 不更新它）。所以 zoom 快捷鍵同時試 `CTRL` 與 `COMMAND` 兩個 pattern（`zoom_key`）。
+11. **egui 的拖曳距離是從「上一幀記住的按下位置」算的**：把 press/move/release 塞進同一批事件只會得到一次點擊；測試裡先輸一幀純 `PointerMoved` 清掉上一次點擊的按下位置，再把 press / move / release 分幀送（實測未清時 70 px 的拖曳量測成 +284 px）。
+12. **平移的上限是圖片超出畫布的一半**：比畫布小的圖片不能平移（永遠置中），比較大的拖到邊緣就停 — 不會出現一條背景色（`clamp_pan`、`panning_stops_at_the_picture_edges`）。
+13. **eframe 對不可見視窗不跑 pass**：`ui.screenshot`（`ViewportCommand::Screenshot`）要由 pass 執行，而本機 Xwayland（mutter）把視窗標為不可見，所以請求會逾時（`request_nudged` 每 120ms `request_repaint`、5s 回報原因，`main.rs` 另有 300ms 心跳）。自動化渲染改用 `harness.render()` 讀真實像素。
+
+## 詳細檢視（本實作新增）
+
+原型的 Screen 2 是「檢視器 + inspector」，但它的照片是一張固定 780×540 的圖，沒有 zoom/pan 的控製。
+本實作按設計語彙補上可用的詳細檢視：
+
+| 元件 | 行為 |
+|---|---|
+| 控制列 | `−` `1:1` `Fit` `+`、`NN%` 讀數、`Close`；26 px / radius 6，與工具列同語彙 |
+| 畫布 | 佔滿 main 那一欄；拖曳平移、`Ctrl/⌘ + 滾輪`縮放、一般滾輪平移 |
+| zoom 值 | 「顯示像素 / 原始像素」，所以 `1.0` 就是 1:1、讀數就是該數 × 100；`Fit` = `None`（沒有明確值） |
+| 上限 | 0.02–16（`DETAIL_MIN_SCALE` / `DETAIL_MAX_SCALE`）；命令層夾住，UI 不能自己亂跳 |
+| 全圖 | 由 worker 以長邊 2400 解（與 grid 的 164 分開快取），上限 4 張同時持有 |
+
+規則：
+- `detail.open` 只在**恰好選一個**時可執行；`detail_index()` 也只在 sole 選取時回 `Some`，所以多選時畫面自動回 grid，不需要命令。
+- `detail.zoom` 的 `in`/`out` 以**模型存的 zoom** 為準，但当 zoom 是 `None`（Fit）時用 UI 傳進來的 `current`（實際 fit 比例），才不會從 1:1 開始跳。
+- zoom 存在 model（經命令），pan 存在 UI：只有畫布在乎圖片在哪。zoom 改變時畫布重新置中（`zoom_seen` 比對，不靠 model 的一次性旗標）。
+- 關掉詳細檢視會連 zoom 一起清掉，下一張從 Fit 開始。
+- 影片（F16 尚未實作）沒有 preview：畫布仍註冊 `canvas:detail`，控制列仍可驅動，圖片區顯示 `No preview available`。
 
 ## 鍵盤操作
 
@@ -158,8 +185,12 @@ radius 分佈：5（39 次）、4（28）、6（22）、1（14）、10（4）、
 | `←` `→` | 可見清單裡前後一個 | `select.move {"direction": "left|right", "columns": N}` |
 | `↑` `↓` | 上下一个**列**（N = 實際欄數） | 同上，`up` / `down` |
 | `Home` / `End` | 第一個 / 最後一個（無選取時 `End` 直接落最後、其餘落第一個） | 同上 |
-| `Esc` | 清空選取 | `select.clear` |
-| `Enter` | **只有在 path 欄有焦點時**提交資料夾路徑 | `folder.add` |
+| `Esc` | 詳細檢視開著時先關掉它，否則清空選取 | `detail.close` / `select.clear` |
+| `Enter` | path 欄有焦點時提交路徑；否則對**唯一選取**開詳細檢視 | `folder.add` / `detail.open` |
+| `Ctrl/⌘ + +` / `−` | 詳細檢視裡放大 / 縮小 | `detail.zoom {"action": "in|out", "current": scale}` |
+| 畫布拖曳 | 平移圖片 | 不經命令（pan 是 UI 狀態） |
+| `Ctrl/⌘ + 滾輪` | 以畫布為基準放大 | `detail.zoom` |
+| 一般滾輪 | 平移 | 同上 |
 
 規則：
 - 全部經 `dispatch()`，不直接改 model；越界時命令回 `{"moved": false}` 且**不改選取**（不是錯誤）。
@@ -171,29 +202,24 @@ radius 分佈：5（39 次）、4（28）、6（22）、1（14）、10（4）、
 ## 元件 id 清單（addressability）
 
 每個 id 都必須在每幀的 registry 裡出現（前綴結尾的 `:` 表示「至少一個該前綴的 id」）。
-`crates/spectrum-app/tests/registry.rs` 會讀下面兩個區塊：`ids` 是每幀都要有，`ids-on-selection`
-是「有選取時必須出現、沒選取時必須不存在」。區塊讀不到或為空會被當失敗（避免空心 checklist）。
+`crates/spectrum-app/tests/registry.rs` 會讀下面四個區塊：`ids` 是 grid 畫面每幀都要有，`ids-on-selection`
+是「有選取時必須出現、沒選取時必須不存在」，`ids-on-detail` 是「詳細檢視開著時必須出現、關掉時必須
+不存在」。區塊讀不到或為空會被當失敗（避免空心 checklist）。
+`ids` 是 **grid 畫面**每幀都要有；詳細檢視會**取代**同一欄的工具列與 grid，所以開著時那些 id 必須
+不存在（由 `ids-on-detail` 測試斷言）。`ids-always` 是兩種畫面都要有的最小清單（標題列、側欄、
+資料夾列與輸入框）。
 
 ```ids
-# panels 與 scroll
-panel:titlebar
+# grid 畫面每幀都要有（詳細檢視開著時這些必須都不存在）
 panel:toolbar
-panel:sidebar
-sidebar:scroll
 grid:scroll
-# titlebar / toolbar
-button:rescan
+# toolbar
 segment:view
 segment:kind
 segment:sort
 button:filter-hdr
 button:filter-clear
 button:sort-order
-# sidebar：Folder view
-folder:
-field:add-path
-button:add-folder
-button:remove-folder
 # grid
 group:
 tile:
@@ -210,3 +236,27 @@ button:hdr-toggle
 button:rotate-cw
 button:trash
 ```
+
+```ids-always
+# 兩種畫面都要有
+panel:titlebar
+panel:sidebar
+sidebar:scroll
+button:rescan
+field:add-path
+button:add-folder
+button:remove-folder
+folder:
+```
+
+```ids-on-detail
+# 只有在詳細檢視開著時存在；關閉時必須都不存在
+panel:detail-strip
+canvas:detail
+button:detail-close
+button:detail-zoom-in
+button:detail-zoom-out
+button:detail-1x
+button:detail-fit
+```
+

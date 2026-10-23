@@ -20,7 +20,7 @@ use serde_json::{json, Value};
 use crate::crop::CropRect;
 use crate::edit::EditOp;
 use crate::filter::Filter;
-use crate::model::{InspectorTab, Library, ViewMode};
+use crate::model::{InspectorTab, Library, ViewMode, DETAIL_MAX_SCALE, DETAIL_MIN_SCALE};
 use crate::nav::{next_index, Direction};
 use crate::select::ClickMods;
 use crate::sort::{SortDirection, SortKey};
@@ -324,6 +324,68 @@ pub fn specs() -> &'static [CommandSpec] {
             },
         },
         CommandSpec {
+            id: "detail.open",
+            label: "Open Detail",
+            group: "View",
+            shortcut: Some("Return"),
+            params: "{}",
+            enabled: ALL_ENABLED,
+            run: |lib, _| {
+                let index = lib.sole().ok_or_else(|| {
+                    CommandError::Disabled("the detail view needs exactly one selected item".into())
+                })?;
+                lib.detail = Some(index);
+                lib.detail_zoom = None;
+                Ok(json!({"index": index, "file": lib.entries[index].name()}))
+            },
+        },
+        CommandSpec {
+            id: "detail.close",
+            label: "Close Detail",
+            group: "View",
+            shortcut: Some("Esc"),
+            params: "{}",
+            enabled: ALL_ENABLED,
+            run: |lib, _| {
+                let had = lib.detail.take().is_some();
+                lib.detail_zoom = None;
+                Ok(json!({"closed": had}))
+            },
+        },
+        CommandSpec {
+            id: "detail.zoom",
+            label: "Zoom",
+            group: "View",
+            shortcut: Some("Ctrl+= / Ctrl+-"),
+            params: "{\"action\": \"in\" | \"out\" | \"fit\" | \"one\", \"current\": 0.42}",
+            enabled: ALL_ENABLED,
+            run: |lib, args| {
+                if lib.detail.is_none() {
+                    return Err(CommandError::Disabled("nothing is open in the detail view".into()));
+                }
+                let action = str_arg(args, "action")?;
+                // `current` is the scale the canvas is showing. From `fit` the registry cannot know
+                // the canvas size, so the UI passes what it drew; without it the base is 1:1.
+                let base = zoom_base(args, lib);
+                let zoom = match action {
+                    "in" => base * 1.25,
+                    "out" => base * 0.8,
+                    "one" => 1.0,
+                    "fit" => {
+                        lib.detail_zoom = None;
+                        return Ok(json!({"zoom": null, "fit": true}));
+                    }
+                    other => {
+                        return Err(CommandError::BadParam(format!(
+                            "unknown zoom action {other:?}"
+                        )))
+                    }
+                };
+                lib.detail_zoom = Some(zoom.clamp(DETAIL_MIN_SCALE, DETAIL_MAX_SCALE));
+                Ok(json!({"zoom": lib.detail_zoom}))
+            },
+        },
+        CommandSpec {
             id: "hdr.toggle",
             label: "HDR/SDR toggle",
             group: "View",
@@ -573,6 +635,17 @@ fn json_kind(v: &Value) -> &'static str {
 
 fn field<'a>(args: &'a Value, key: &str) -> Option<&'a Value> {
     args.get(key).filter(|v| !v.is_null())
+}
+
+/// The scale the detail canvas is showing: an explicit zoom, else the `current` the UI passed
+/// (the fit scale needs the canvas size, which the registry does not know), else 1:1.
+fn zoom_base(args: &Value, lib: &Library) -> f32 {
+    lib.detail_zoom.unwrap_or_else(|| {
+        field(args, "current")
+            .and_then(Value::as_f64)
+            .map(|v| v as f32)
+            .unwrap_or(1.0)
+    })
 }
 
 fn str_arg<'a>(args: &'a Value, key: &str) -> Result<&'a str, CommandError> {

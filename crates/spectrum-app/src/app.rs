@@ -35,6 +35,7 @@ use spectrum_core::timeline::civil_from_days;
 use spectrum_core::{dispatch, InspectorTab, Library, ViewMode};
 
 use crate::control::{self, Inbox};
+use crate::detail::{self, CanvasState};
 use crate::theme::{self, Tokens};
 use crate::thumbs::Worker;
 use crate::tokens::{radius, size, space, text};
@@ -49,6 +50,24 @@ const SORTS: [SortKey; 5] = [
     SortKey::Transfer,
     SortKey::Size,
 ];
+
+/// Was this key pressed with the platform's main modifier? `count_and_consume_key` matches
+/// `Modifiers::COMMAND` only when `command` is set, and `Modifiers::CTRL` only when `ctrl` is, so
+/// both patterns are tried: a Linux Ctrl arrives as `ctrl`, a macOS ⌘ as `command`.
+fn zoom_key(ui: &Ui, key: egui::Key) -> bool {
+    ui.input_mut(|i| {
+        i.count_and_consume_key(egui::Modifiers::CTRL, key)
+            + i.count_and_consume_key(egui::Modifiers::COMMAND, key)
+            > 0
+    })
+}
+
+/// The longest side the detail view asks the decoder for: enough for a 4K screen at 1:1 without
+/// holding an 8064×6048 frame in memory.
+const DETAIL_SIDE: u32 = 2400;
+/// Only a few full-size frames are worth keeping — one is ~7 MB of RGBA, and the user looks at one
+/// file at a time.
+const DETAIL_CAPACITY: usize = 4;
 
 pub struct AppState {
     pub lib: Library,
@@ -90,6 +109,17 @@ pub struct AppState {
     path_focused: bool,
     /// A tile to bring into view (set by a keyboard move, cleared after `scroll_hold` frames).
     scroll_focus: Option<usize>,
+    /// Canvas state for the single-image view: pan, plus what the last frame drew. Public because
+    /// the geometry tests check where the picture was actually painted.
+    pub canvas: CanvasState,
+    /// The zoom the canvas last centred on; a change re-centres the picture. `Option<Option<_>>`
+    /// because "fit" (`None`) is a value of its own.
+    zoom_seen: Option<Option<f32>>,
+    /// Full-size frames for the detail view, keyed by file.
+    detail_textures: HashMap<std::path::PathBuf, TextureHandle>,
+    /// Files already asked for at detail size, and files the loader refused at that size.
+    detail_asked: HashSet<std::path::PathBuf>,
+    detail_failed: HashSet<std::path::PathBuf>,
     /// Frames left to keep asking for the jump. Selecting the first file also brings the inspector
     /// up, which narrows the grid and resets the offset in that same frame, so one frame is not
     /// enough: two frames land the jump after the layout has settled.
@@ -117,6 +147,11 @@ impl AppState {
             path_focused: false,
             scroll_focus: None,
             scroll_hold: 0,
+            canvas: CanvasState::default(),
+            zoom_seen: None,
+            detail_textures: HashMap::new(),
+            detail_asked: HashSet::new(),
+            detail_failed: HashSet::new(),
         }
     }
 
@@ -257,32 +292,52 @@ impl AppState {
     fn pump_thumbs(&mut self, ctx: &Context) {
         let finished = self.thumb_worker.as_ref().map(|worker| worker.take());
         for job in finished.unwrap_or_default() {
+            let full_size = job.max >= DETAIL_SIDE;
             match job.rgba {
                 Some((width, height, rgba)) => {
-                    // Square cells, so crop the centre: a 4:3 photo loses its sides instead of
-                    // being squashed.
-                    let square = spectrum_core::thumbnail::crop_center_square(
-                        &spectrum_core::thumbnail::Decoded {
-                            width,
-                            height,
-                            rgba,
-                        },
-                    );
-                    let image = ColorImage::from_rgba_unmultiplied(
-                        [square.width as usize, square.height as usize],
-                        &square.rgba,
-                    );
-                    let name = job.path.to_string_lossy().into_owned();
+                    // Grid cells are square, so the centre is cropped: a 4:3 photo loses its sides
+                    // instead of being squashed. The detail view wants the whole frame, which is why
+                    // this is done here and not inside the decoder.
+                    let (w, h, pixels) = if full_size {
+                        (width, height, rgba)
+                    } else {
+                        let square = spectrum_core::thumbnail::crop_center_square(
+                            &spectrum_core::thumbnail::Decoded {
+                                width,
+                                height,
+                                rgba,
+                            },
+                        );
+                        (square.width, square.height, square.rgba)
+                    };
+                    let image =
+                        ColorImage::from_rgba_unmultiplied([w as usize, h as usize], &pixels);
+                    let name = if full_size {
+                        format!("detail {}", job.path.to_string_lossy())
+                    } else {
+                        job.path.to_string_lossy().into_owned()
+                    };
                     let texture = ctx.load_texture(name, image, TextureOptions::LINEAR);
-                    self.thumb_failed.remove(&job.path);
-                    self.thumbs.insert(job.path, texture);
+                    if full_size {
+                        self.detail_failed.remove(&job.path);
+                        self.detail_textures.insert(job.path, texture);
+                    } else {
+                        self.thumb_failed.remove(&job.path);
+                        self.thumbs.insert(job.path, texture);
+                    }
                 }
                 None => {
-                    self.thumb_failed.insert(job.path);
+                    if full_size {
+                        self.detail_failed.insert(job.path);
+                    } else {
+                        self.thumb_failed.insert(job.path);
+                    }
                 }
             }
         }
 
+        // Grid tiles: three per frame, because one HEIC costs ~850 ms and queuing everything would
+        // pile up work nobody has looked at yet.
         let mut missing: Vec<std::path::PathBuf> = Vec::new();
         for index in self.lib.visible() {
             let path = self.lib.entries[index].path.clone();
@@ -297,22 +352,39 @@ impl AppState {
                 break;
             }
         }
-        if missing.is_empty() {
-            return;
+        if let Some(worker) = self.thumb_worker.as_ref() {
+            for path in &missing {
+                worker.request(path.clone());
+            }
         }
-        let sender = self.thumb_worker.as_ref().map(|worker| worker.sender());
-        match sender {
-            Some(sender) => {
-                for path in missing {
-                    sender.send(path.clone()).ok();
-                    self.thumb_asked.insert(path);
+        // Without a worker (a snapshot test) the paths are still recorded, so nothing is asked for
+        // again on a frame that can never be answered.
+        self.thumb_asked.extend(missing);
+
+        // The detail view asks for the open file once, at full size.
+        if let Some(index) = self.lib.detail_index() {
+            let path = self.lib.entries[index].path.clone();
+            if !self.detail_textures.contains_key(&path)
+                && !self.detail_failed.contains(&path)
+                && !self.detail_asked.contains(&path)
+            {
+                if let Some(worker) = self.thumb_worker.as_ref() {
+                    worker.request_at(path.clone(), DETAIL_SIDE, DETAIL_CAPACITY);
                 }
-            }
-            None => {
-                // No worker (a test): record the paths so nothing is asked for again.
-                self.thumb_asked.extend(missing);
+                self.detail_asked.insert(path);
             }
         }
+    }
+
+    /// The decoded full-size frame for the open file, cloned out of the map so the canvas can be
+    /// borrowed mutably while it is drawn.
+    fn detail_texture(&self) -> Option<TextureHandle> {
+        let index = self.lib.detail_index()?;
+        self.lib
+            .entries
+            .get(index)
+            .and_then(|entry| self.detail_textures.get(&entry.path))
+            .cloned()
     }
 
     /// The decoded thumbnail for an entry, if there is one.
@@ -328,6 +400,12 @@ impl AppState {
     pub fn render(&mut self, ui: &mut Ui) {
         self.logic(ui.ctx());
         self.ui(ui);
+    }
+
+    /// Whether the detail view has a decoded frame yet. Tests wait on this rather than guessing a
+    /// delay, because the decode happens on the worker thread.
+    pub fn has_detail_texture(&self) -> bool {
+        self.detail_texture().is_some()
     }
 
     /// Write back any screenshot egui handed us. The request comes from the control channel and
@@ -357,6 +435,7 @@ impl AppState {
     pub fn ui(&mut self, ui: &mut Ui) {
         let tokens = self.tokens;
         theme::apply(ui.ctx());
+        self.handle_detail_keys(ui);
 
         let titlebar = Panel::top("titlebar")
             .exact_size(size::TITLEBAR_HEIGHT)
@@ -459,6 +538,12 @@ impl AppState {
                     )),
             )
             .show(ui, |ui| {
+                // The detail view replaces the grid: the photo is the subject, so the toolbar and the
+                // tiles step out of the way.
+                if self.lib.detail_index().is_some() {
+                    self.detail_canvas(ui, &tokens);
+                    return;
+                }
                 // The filter/sort bar belongs to this column, not to the window: in the design the
                 // sidebar starts right under the titlebar, and a full-width bar would push it down.
                 let bar = ui.vertical(|ui| {
@@ -816,6 +901,65 @@ impl AppState {
         }
     }
 
+    /// Enter opens the selected file, Escape closes the detail view (and clears the selection when
+    /// there is nothing to close), Ctrl/⌘ + `+`/`-` zooms. These are handled outside the grid because
+    /// the detail view draws no tiles, so the grid's own key handler would never run.
+    fn handle_detail_keys(&mut self, ui: &Ui) {
+        if self.path_focused {
+            return;
+        }
+        if ui.input(|i| i.key_pressed(egui::Key::Enter)) && self.lib.sole().is_some() {
+            self.run("detail.open", json!({}));
+        }
+        if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
+            if self.lib.detail.is_some() {
+                self.run("detail.close", json!({}));
+            } else {
+                self.run("select.clear", json!({}));
+            }
+        }
+        if self.lib.detail.is_some() {
+            // `count_and_consume_key` reads the modifiers off the key event itself: egui only
+            // updates `i.modifiers` from `ModifiersChanged` events, so checking `i.modifiers` here
+            // would miss Ctrl in tests and in some backends. `+` and `=` share a key, so both zoom
+            // in, and the logical match ignores the Shift that `+` needs.
+            if zoom_key(ui, egui::Key::Equals) || zoom_key(ui, egui::Key::Plus) {
+                self.zoom_request("in");
+            } else if zoom_key(ui, egui::Key::Minus) {
+                self.zoom_request("out");
+            }
+        }
+    }
+
+    /// Ask the registry for a zoom change, carrying the scale the canvas is showing so a zoom from
+    /// "fit" continues from the real fit scale rather than from 1:1.
+    fn zoom_request(&mut self, action: &str) {
+        let current = self.canvas.scale as f64;
+        self.run("detail.zoom", json!({"action": action, "current": current}));
+    }
+
+    /// The single-image canvas: strip, then the frame at its own size.
+    fn detail_canvas(&mut self, ui: &mut Ui, tokens: &Tokens) {
+        let zoom = self.lib.detail_zoom;
+        // A zoom change re-centres: keeping the old pan while scaling leaves the picture somewhere
+        // off screen and reads as a bug.
+        if self.zoom_seen != Some(zoom) {
+            self.zoom_seen = Some(zoom);
+            self.canvas.pan = egui::Vec2::ZERO;
+        }
+        let texture = self.detail_texture();
+        let outcome = detail::draw(ui, tokens, texture.as_ref(), zoom, &mut self.canvas);
+        for action in outcome.zoom_actions {
+            self.run(
+                "detail.zoom",
+                json!({"action": action, "current": outcome.percent as f64 / 100.0}),
+            );
+        }
+        if outcome.close_clicked {
+            self.run("detail.close", json!({}));
+        }
+    }
+
     /// Arrow/Home/End move the selection through the visible list; Escape clears it. Skipped while
     /// the add-folder field is focused, so typing a path never moves the grid.
     fn handle_nav_keys(&mut self, ui: &Ui, columns: usize) {
@@ -835,9 +979,6 @@ impl AppState {
             .filter_map(|(pressed, direction)| pressed.then_some(direction))
             .collect()
         });
-        if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
-            self.run("select.clear", json!({}));
-        }
         for direction in directions {
             if self.run(
                 "select.move",

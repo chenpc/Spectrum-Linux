@@ -25,39 +25,54 @@ use std::thread::{self, JoinHandle};
 
 use spectrum_core::thumbnail::ThumbnailService;
 
+/// A decode request: which file, how long its longest side may be, and how many frames of that size
+/// may be kept. The grid asks for 164 px; the detail view asks for the frame at its own size, and
+/// those must not share a cache or a full-size frame would push every tile out of it.
+pub struct Request {
+    pub path: PathBuf,
+    pub max: u32,
+    pub capacity: usize,
+}
+
 /// A finished decode: pixels on success, the loader's message on failure.
 pub struct Job {
     pub path: PathBuf,
+    pub max: u32,
     pub rgba: Option<(u32, u32, Vec<u8>)>,
     pub error: Option<String>,
 }
 
 /// The UI's end of the queue. Requests are fire-and-forget; results are drained once per frame.
 pub struct Worker {
-    requests: Sender<PathBuf>,
+    default_max: u32,
+    default_capacity: usize,
+    requests: Sender<Request>,
     results: Receiver<Job>,
     handle: Option<JoinHandle<()>>,
 }
 
 impl Worker {
-    /// Start one decoder thread with an LRU cache of `capacity` downscaled frames.
+    /// Start one decoder thread. `max`/`capacity` are the defaults a request gets when it does not
+    /// carry its own; requests for a different size get their own cache.
     pub fn spawn(max: u32, capacity: usize) -> Worker {
-        let (requests_tx, requests_rx): (Sender<PathBuf>, Receiver<PathBuf>) = mpsc::channel();
+        let (requests_tx, requests_rx): (Sender<Request>, Receiver<Request>) = mpsc::channel();
         let (results_tx, results_rx): (Sender<Job>, Receiver<Job>) = mpsc::channel();
         let handle = thread::spawn(move || {
-            let mut service = ThumbnailService::with_capacity(max, capacity);
-            for path in requests_rx.iter() {
-                let job = match service.get(&path) {
-                    Ok((decoded, _)) => Job {
-                        path,
-                        rgba: Some((decoded.width, decoded.height, decoded.rgba)),
-                        error: None,
-                    },
-                    Err(message) => Job {
-                        path,
-                        rgba: None,
-                        error: Some(message),
-                    },
+            let mut services: std::collections::HashMap<u32, ThumbnailService> =
+                std::collections::HashMap::new();
+            for request in requests_rx.iter() {
+                let service = services.entry(request.max).or_insert_with(|| {
+                    ThumbnailService::with_capacity(request.max, request.capacity)
+                });
+                let (rgba, error) = match service.get(&request.path) {
+                    Ok((decoded, _)) => (Some((decoded.width, decoded.height, decoded.rgba)), None),
+                    Err(message) => (None, Some(message)),
+                };
+                let job = Job {
+                    path: request.path,
+                    max: request.max,
+                    rgba,
+                    error,
                 };
                 if results_tx.send(job).is_err() {
                     break;
@@ -65,19 +80,39 @@ impl Worker {
             }
         });
         Worker {
+            default_max: max,
+            default_capacity: capacity,
             requests: requests_tx,
             results: results_rx,
             handle: Some(handle),
         }
     }
 
-    /// Ask for a file. The caller tracks what it already asked for, so this never queues twice.
+    /// Ask for a file at the worker's default size. The caller tracks what it already asked for, so
+    /// this never queues twice.
     pub fn request(&self, path: PathBuf) {
-        self.requests.send(path).ok();
+        self.requests
+            .send(Request {
+                path,
+                max: self.default_max,
+                capacity: self.default_capacity,
+            })
+            .ok();
+    }
+
+    /// Ask for a file at a specific size and cache budget.
+    pub fn request_at(&self, path: PathBuf, max: u32, capacity: usize) {
+        self.requests
+            .send(Request {
+                path,
+                max,
+                capacity,
+            })
+            .ok();
     }
 
     /// A second sender, so the UI thread can hold it without borrowing the worker.
-    pub fn sender(&self) -> Sender<PathBuf> {
+    pub fn sender(&self) -> Sender<Request> {
         self.requests.clone()
     }
 

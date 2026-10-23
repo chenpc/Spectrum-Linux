@@ -1059,8 +1059,8 @@ UI：`Ui` 新增 `import_list`、`import_scroll`、`import_model`、`import_rows
 **測試：** `cargo clippy --workspace --all-targets -- -D warnings` 0 error（補上 deny 後 app 碼仍然乾淨，因為 `unwrap` 只出現在測試）、**226 tests passed / 0 failed**、`cargo xtask ci` 全綠。
 ## 2026-10-23 — 快照重建、字型回退、網格改寫
 `UPDATE_SNAPSHOTS=1` 重建 `library_all.png`、`detail_adjust.png`（1440×900）。UI 規格刪掉不存在的 `panel:inspector` / `inspector:scroll`（registry 測試抓出來：規格寫的 id 跟實際註冊的不一樣）。theme 加入 `main_inline=20`、`main_padding=16`（設計 Main frame 的 padding 是 `[16, 20, 16, 20]`），重產 `tokens.rs`。
-網格原本用 `Grid`：它按看過的单元格算欄寬，32 個檔案時後面幾欄收縮到 HDR badge 的寬度，tile 彼此疊了 ~122px。改成依實際寬度算固定欄數（`horizontal_wrapped` 在垂直 ScrollArea 裡拿到無限寬，會跑成幾千 px）。badge 從 tile 下方移到 tile 內左上角，設計的行距 166px 才成立（放下面會變 185px）。CJK 字型走系統載入（本機 NotoSansCJK，或 arphic 的 uming.ttc），`SPECTRUM_CJK_FONT` 可覆蓋；啟動 log 會印載入的路徑。
-教訓：`Grid` 的欄寬由先出現的单元格決定，內容寬度不一致時不能用它；`Ui::put` 會推進父 ui 的游標，疊放的元件要放進獨立的 sub-ui，否則下一個 tile 從 pill 的右邊開始（實測 x 從 432 跳到 306）。
+網格原本用 `Grid`：它按看過的儲存格算欄寬，32 個檔案時後面幾欄收縮到 HDR badge 的寬度，tile 彼此疊了 ~122px。改成依實際寬度算固定欄數（`horizontal_wrapped` 在垂直 ScrollArea 裡拿到無限寬，會跑成幾千 px）。badge 從 tile 下方移到 tile 內左上角，設計的行距 166px 才成立（放下面會變 185px）。CJK 字型走系統載入（本機 NotoSansCJK，或 arphic 的 uming.ttc），`SPECTRUM_CJK_FONT` 可覆蓋；啟動 log 會印載入的路徑。
+教訓：`Grid` 的欄寬由先出現的儲存格決定，內容寬度不一致時不能用它；`Ui::put` 會推進父 ui 的游標，疊放的元件要放進獨立的 sub-ui，否則下一個 tile 從 pill 的右邊開始（實測 x 從 432 跳到 306）。
 驗證：`cargo test --workspace` 240 通過、`cargo xtask ci` 全綠、`cargo clippy --workspace --all-targets -- -D warnings` 0 error。
 
 ## 2026-10-23 — 縮圖真的進到格子
@@ -1096,3 +1096,18 @@ UI：`Ui` 新增 `import_list`、`import_scroll`、`import_model`、`import_rows
 **修改的檔案：** `crates/spectrum-core/src/{command.rs,nav.rs,lib.rs}`、`crates/spectrum-app/src/app.rs`、`docs/ui-spec.md`、`docs/backlog.md`。
 **測試：** `tests/select_move.rs` 9 條（欄序、Home/End、越界不改 model、摺疊群跳過並回 `Disabled`、篩選生效、單欄、clear、未知 direction/缺 columns 為 `BadParam`、不動檔案也不寫 sidecar）；`tests/keyboard.rs` 6 條（←→ 走一個、↓ 走一整列且用實測欄數、Home/End/Esc、越界不動、鍵盤選取的磁磚落在 `grid:scroll` 內、輸入框搶走方向鍵且點擊不會加資料夾、Enter 提交且不會加兩次）。`cargo test --workspace` 271 通過、clippy 0、`xtask ci` 綠（snapshot 未變）。
 **注意：** 第一次選取會同時出現 inspector → 網格變窄 → 該幀的 scroll offset 被重置，所以「捲進可視區」要連續要求兩幀；單幀測試會一直失敗（實測：`tile y=1039` 對比 `scroll 123..876`）。另外 `egui_kittest` 的離頭渲染不會推進時間，任何依賴 `ScrollAnimation` 的動畫都不會有進展 — 用 `ScrollAnimation::none()`。
+
+## 2026-10-23 — F06：單圖詳細檢視（zoom / pan / 1:1）
+**問題：** 選取一張之後只有 260 px 的 inspector，沒有任何單圖畫面 — 看不到全解析度、不能縮放、也沒有 F07 tone-map 可以落的位子。原型的 Screen 2 是「檢視器 + inspector」，但它的照片是一張固定的 780×540 圖，沒有縮放控件，所以設計只給語彙、不給幾何。
+**根因與做法：**
+- 新增 `crates/spectrum-app/src/detail.rs`：控制列（`−` `1:1` `Fit` `+`、`NN%` 讀數、`Close`，沿用 26 px / radius 6）+ 畫布（拖曳平移、`Ctrl/⌘ + 滾輪`縮放、一般滾輪平移）。詳細檢視**取代**同一欄的 toolbar/grid，不是疊在上面。
+- zoom 的定義是「顯示像素 / 原始像素」，`1.0` 就是 1:1、讀數就是它 × 100、`Fit` 就是 `None`（沒有明確值）。zoom 存 model（經 `detail.zoom` 命令，夾在 0.02–16），pan 存 UI — 只有畫布在乎圖片在哪。命令的 `in`/`out` 在 zoom 為 `None` 時用 UI 傳的 `current`（實際 fit 比例），否则從 Fit 放大會跳到 1:1 的倍率而不是画面的倍率。
+- `Library.detail` + `detail_index()`：`detail_index()` 只在 **sole 選取**時回 `Some`，所以多選時畫面自動回 grid，不需要額外命令；`rescan()` 發現那張圖不見了就關掉；`detail.close` 連 zoom 一起清掉，下一張從 Fit 開始。重新置中用 UI 端的 `zoom_seen` 比對，不用 model 的一次性旗標（第一版用 `detail_recentre` 旗標，等於讓 UI 往 model 塞垃圾，刪掉了）。
+- `thumbs::Worker` 改成帶 `Request { path, max, capacity }`，每種尺寸有自己的 `ThumbnailService`，所以 grid 的 164 px 快取不會把詳細檢視的全圖擠掉；詳細檢視要長邊 2400、最多同持 4 張。
+**修改的檔案：** `crates/spectrum-app/src/{detail.rs,app.rs,thumbs.rs,lib.rs}`、`crates/spectrum-core/src/{model.rs,command.rs}`、`crates/spectrum-app/tests/{detail.rs,registry.rs}`、`crates/spectrum-core/tests/detail.rs`、`docs/{ui-spec.md,backlog.md}`。
+**測試：** `spectrum-core/tests/detail.rs` 8 條（open 需 sole、多選自動不顯示、close 清 zoom、zoom 以 `current` 繼續、上下限可 escape、未知 action 為 `BadParam`、rescan 掉檔案就關掉、五個命令都不動檔案也不寫 sidecar）；`spectrum-app/src/detail.rs` 7 條單元（fit 取兩軸較小者、明確 zoom 被夾、比畫布小的圖不能平移、平移上限 = 超出的一半且畫布不會露出背景、bounds 與命令一致）；`tests/detail.rs` 7 條（Enter 開/Esc 關且 toolbar 消失、`Ctrl+ +/−` 縮放且 Esc 順序、Close 按鈕回 grid、`+/1:1/Fit` 改變實際繪製尺寸（1:1 = 圖自己的 1600 px）、拖 70 px 圖片移 70 px、拖過頭停在邊緣、影片開畫布但 `image_rect == Rect::NOTHING` 且控件仍可點）；`tests/registry.rs` 加 1 條（詳細檢視開著時 `ids-always` 還在、`ids` 的 grid id 必須全部消失、關掉後回來）。`cargo test --workspace` 292 通過、clippy `-D warnings` 0、`xtask ci` 綠（snapshot 未變）。
+**注意：**
+1. `ui.allocate_rect(canvas, Sense::drag())` 要在圖片**之後**分配：egui 把游標交給最後一個 rect 含住游標的元件，順序反了 `dragged()` 永遠 false。
+2. `count_and_consume_key(Modifiers::COMMAND, key)` 不認得只有 `ctrl` 的事件（`cmd_ctrl_matches` 要求 pattern 的 `command` 位也設置），而 `i.modifiers` 只由 `ModifiersChanged` 更新，注入的 `Event::Key` 不會改它 — 所以 `zoom_key()` 同時試 `CTRL` 與 `COMMAND`。
+3. 拖曳距離是依「上一幀記住的按下位置」算：press/move/release 塞同一批事件只會得到點擊，而且前一次點擊的位置會被當成拖曳起點（實測 70 px 量成 +284 px）。測試先輸一幀純 `PointerMoved` 再分幀 press/move/release。
+4. `ui.put(rect, Image…)` 不推進 cursor，但會注册元件 rect；要讓畫布拿到游標，就得讓它最後注册。

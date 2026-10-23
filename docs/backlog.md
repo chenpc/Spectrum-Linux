@@ -43,10 +43,10 @@
 - 要動：`thumbnail.rs` 加 `apply_edit(&Decoded, &CompositeEdit)`（rotate 90/-90、flip_h、crop 依旋轉後座標系），在 downscale 之後套用；測試用合成 PNG 斷言像素位置。
 
 ### F06 — 單圖詳細檢視（zoom / pan / 1:1）
-- [ ] 未完成
+- [x] 完成（核心 + UI + 測試）
 - macOS：`Views/Detail/PhotoDetailView.swift`(1138) + `PhotoInfoPanel.swift`(591)。
-- 現況：只有 260px inspector（caption、訊號 chip、Adjust/Info、rotate/flip/restore/trash）。**沒有單圖檢視、沒有縮放/平移、沒有全螢幕模式。**
-- 要動：一個 `detail` 畫面（或 inspector 右側的大畫布）：全解析度顯示（走 glycin 全圖）、zoom/pan、`detail:scroll`/`button:zoom-in` 等 registry id。這是 F07 tone-map 的落點。
+- 現況：`crates/spectrum-app/src/detail.rs`（250 行）— 控制列 `−` / `1:1` / `Fit` / `+` / `NN%` / `Close`，畫布拖曳平移、`Ctrl/⌘ + 滾輪`縮放；model 加 `detail` / `detail_zoom`，命令 `detail.open`（需 sole 選取）/ `detail.close` / `detail.zoom`；全圖由 thumbs worker 以長邊 2400 解（與 grid 的 164 分開快取、最多持 4 張）；registry `canvas:detail`、`panel:detail-strip` 與 6 個按鈕 id，`ids-on-detail` / `ids-always` 由 `tests/registry.rs` 驗（開著時 grid 的 id 必須不存在）。
+- 還欠：上一張 / 下一張導航（macOS 有 34×34 圓形按鈕）、全螢幕、F16 的影片 preview、F07 tone-map 的落點（現在畫布顯示的是 sRGB 解碼結果）。
 
 ### F07 — HDR tone-mapping 與顯示模式（HLG / PQ / gain-map）
 - [ ] 未完成

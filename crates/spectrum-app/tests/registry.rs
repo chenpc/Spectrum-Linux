@@ -272,3 +272,73 @@ fn grid_columns_match_the_design_widths() {
         "a narrow column still gets one tile"
     );
 }
+
+/// The minimum list survives both screens: the detail view replaces the toolbar and the grid, but
+/// the titlebar, the sidebar and the folder rows must still be addressable — otherwise a script
+/// driving the app cannot get back out of the detail view.
+#[test]
+fn always_ids_survive_the_detail_view() {
+    let state = Rc::new(RefCell::new(AppState::new(fixture_dir("always"))));
+    let mut harness = harness(state.clone());
+    harness.run();
+
+    let grid = ids(&state.borrow());
+    for id in promised_ids("ids-always") {
+        assert!(
+            grid.iter().any(|have| have.starts_with(id.as_str())),
+            "{id} must be on screen in the grid view"
+        );
+    }
+
+    state
+        .borrow_mut()
+        .run("grid.click", serde_json::json!({"index": 0}));
+    state.borrow_mut().run("detail.open", serde_json::json!({}));
+    harness.run();
+
+    let detail = ids(&state.borrow());
+    let registered = detail.len();
+    for id in promised_ids("ids-always") {
+        assert!(
+            detail.iter().any(|have| have.starts_with(id.as_str())),
+            "{id} must still be addressable with the detail view open ({registered} widgets)"
+        );
+    }
+    for id in promised_ids("ids-on-detail") {
+        assert!(
+            detail.iter().any(|have| have.starts_with(id.as_str())),
+            "the detail view is open, so {id} must be registered ({registered} widgets)"
+        );
+    }
+    // The inspector's own badge shares the grid's `badge:` prefix, so prefixes that the selection
+    // block also promises are not treated as grid-only.
+    let inspector = promised_ids("ids-on-selection");
+    for id in promised_ids("ids") {
+        if inspector.iter().any(|own| own.starts_with(id.as_str())) {
+            continue;
+        }
+        assert!(
+            !detail.iter().any(|have| have.starts_with(id.as_str())),
+            "the detail view replaces the toolbar and the grid: {id} must not be left registered, \
+             or a script would click a widget that is not drawn"
+        );
+    }
+
+    state
+        .borrow_mut()
+        .run("detail.close", serde_json::json!({}));
+    harness.run();
+    let closed = ids(&state.borrow());
+    for id in promised_ids("ids-on-detail") {
+        assert!(
+            !closed.iter().any(|have| have.starts_with(id.as_str())),
+            "closed, so {id} must be gone from the registry"
+        );
+    }
+    for id in promised_ids("ids") {
+        assert!(
+            closed.iter().any(|have| have.starts_with(id.as_str())),
+            "back on the grid screen, {id} must be there again"
+        );
+    }
+}

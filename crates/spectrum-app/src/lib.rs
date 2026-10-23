@@ -10,6 +10,7 @@
 
 pub mod app;
 pub mod control;
+pub mod detail;
 pub mod theme;
 pub mod thumbs;
 pub mod tokens;
