@@ -22,8 +22,17 @@ struct Runner(AppState);
 
 impl eframe::App for Runner {
     /// Answer control requests before the pass, so a request and its reply straddle a real frame.
-    fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn logic(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         self.0.logic(ctx);
+        // While a control channel is open, also ask `winit` for a redraw. `Context::request_repaint`
+        // only updates egui's schedule; on X11 nothing else pushes the event loop, so a window that
+        // the compositor stops sending `RedrawRequested` for answers no request until the user
+        // happens to move the mouse. `request_redraw` posts to the loop itself.
+        if self.0.is_driven() {
+            if let Some(window) = frame.winit_window() {
+                window.request_redraw();
+            }
+        }
     }
 
     /// Deliver the queued control events as this pass's raw input.

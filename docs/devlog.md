@@ -1,4 +1,33 @@
 # Development log
+## 2026-08-03 — F20 修正：按「Add folder」什麼都沒發生
+
+**問題：** 使用者回饋 `Add folder` / 瀏覽器按了沒反應。檢查 `app.rs` 發現舊條件是
+`wants_add && !path.is_empty()` —— 路徑欄是**空的**時候那顆按鈕什麼都不做，開瀏覽器的是另外一顆
+`Browse…`。對只想按一顆按鈕的人來說，結果就是「按了沒反應」。
+
+**做法：** 一顆按鈕兩種行為。`button:add-folder` 在路徑欄有字時照舊走 `folder.add`；空欄時開目錄瀏覽器
+（`Browser::start_at(...)`）。`button:browse-folder` 因此消失，`ids-always` 清單與測試同步更新。
+
+**量測：** snapshot 基線的差異範圍 `bbox (18,206)-(117,270)`（99×64 px，只有側欄那顆按鈕：空欄時不再
+是 accent）；`add_folder` 測試 11 個（新增「打了路徑就直接加入、不會開瀏覽器」一條）；
+`cargo xtask ci` 全綠。
+
+**顺手查出的環境問題：** 在這台機器上 `xwininfo -root -tree | grep -i spectrum` **找不到視窗**，
+也就是視窗從頭到尾沒被 map。`ui.inspect` 顯示前 4 秒 `drawn == frame == 89`（有在画），之後 loop
+睡死（主執行緒 `ep_poll`，utime 不再增長），控制通道所有請求都變成「no frame answered the request」。
+原因是 eframe 對不可見視窗走 logic-only 並回 `EventResult::Wait`：`PlatformOutput.repaint_after` 在
+那條路徑被忽略，而 `Context::request_repaint()` 從輔助執行緒送進來不會叫醒 winit。試過
+`--headless`（`with_visible(false)`，指望 eframe 自己画不可見視窗）一樣睡死，所以沒有留下來。
+
+**因此加的東西：** `AppState::drawn`（實際跑過 paint pass 的次數）與 `ui.inspect` 的
+`drawn`/`drawing` 欄位 —— `frame` 在漲而 `drawn` 不动，就是視窗管理員停止要求绘制，點擊根本不會被
+處理，指令腳本不必猜。`logic()` 現在會 `request_repaint_after(250 ms)`、在被停止绘制時送
+`ViewportCommand::Visible(true)`（eframe 連 logic-only 都會處理视口命令），並透過
+`frame.winit_window().request_redraw()` 推 winit 一把。這三者都只在控制通道開著時生效，一般使用者
+自己縮掉的視窗不會被強行叫回來。
+
+**仍未解決：** 視窗未被 map 的環境（Xwayland 沒有合成器 map 我們的視窗）無法做互動驗證；自動驗證仍走
+`egui_kittest`。
 ## 2026-08-03 — F20：Add Folder 從「打路徑」變成「選目錄」
 
 **問題：** 側欄只能打字輸入路徑。macOS 原版用 `NSOpenPanel`（`canChooseDirectories = true`、`allowsMultipleSelection`、prompt 寫 "Scan"），外加側欄拖曳與 `--add-folder` CLI；Linux 沒有對應的原生目錄選擇器，也不打算引入（會把 GTK/xdg 拉進來）。

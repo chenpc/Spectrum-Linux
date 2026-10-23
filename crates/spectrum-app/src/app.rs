@@ -83,8 +83,13 @@ pub struct AppState {
     /// pointer state from the raw input of a pass, so pushing events into `ctx.input_mut` mid-pass
     /// would only ever reach code that reads `events` directly, never a click.
     pending: VecDeque<Vec<Event>>,
-    /// Frames drawn so far: a script waits for `frame` to pass the frame it acted in.
+    /// Logic ticks: a script waits for `frame` to pass the frame it acted in.
     pub frame: u64,
+    /// Paint passes that actually ran. `eframe` runs `App::logic` even when the window manager has
+    /// stopped asking for draws (occluded or unmapped), and egui handles input *inside* the pass —
+    /// so `frame` growing while `drawn` stands still means clicks and keys cannot register, which is
+    /// what `ui.inspect` reports instead of making a script guess.
+    pub drawn: u64,
     /// Set by `ui.quit`; `eframe` closes the viewport in `control::handle`.
     pub quit: bool,
     /// Outcomes of `ui.screenshot` requests, newest last: `<path>: N bytes` or the failure.
@@ -146,6 +151,7 @@ impl AppState {
             shots: Vec::new(),
             widgets: Vec::new(),
             frame: 0,
+            drawn: 0,
             quit: false,
             inbox: None,
             store_path: None,
@@ -297,6 +303,12 @@ impl AppState {
     /// Everything but drawing: answer control requests, deliver one queued event batch, and drop
     /// last frame's widget registry. Kept apart from [`Self::ui`] so logic can be driven without a
     /// paint pass, and the paint pass without logic.
+    /// True while a control channel is open: something outside this process is driving the app,
+    /// so the window must keep being drawn even if the window manager stops asking.
+    pub fn is_driven(&self) -> bool {
+        self.inbox.is_some()
+    }
+
     pub fn logic(&mut self, ctx: &Context) {
         if let Some(inbox) = self.inbox.as_mut() {
             for req in inbox.drain() {
@@ -306,6 +318,26 @@ impl AppState {
         }
         widgets::begin_frame(ctx);
         self.frame += 1;
+        // A window the window manager stopped drawing runs no egui pass at all, and egui handles
+        // input inside the pass — so nothing a script or a mouse sends can land. eframe keeps
+        // `App::logic` ticking exactly so the app can ask to be shown again, so ask while a control
+        // channel is open: an automated session that cannot click is worse than a window that pops
+        // back onto the screen. A plain user who minimised the window has no control channel, so
+        // this never un-minimises anything they closed on purpose.
+        if self.inbox.is_some() {
+            // Ask for the *next* frame from inside this one, so a driven app keeps ticking while
+            // it is on screen: `Context::request_repaint` from a helper thread does not reach
+            // eframe's sleep decision, which was already made by the time that thread runs.
+            ctx.request_repaint_after(std::time::Duration::from_millis(250));
+            // Once the window manager stops drawing, eframe runs logic only and ignores
+            // `repaint_after` (`EventResult::Wait`), so the loop sleeps until the window manager
+            // sends something. Asking to be shown is the one request that produces such an event,
+            // and eframe processes viewport commands even in a logic-only tick — hence one per tick
+            // rather than one per screenful.
+            if self.drawn < self.frame {
+                ctx.send_viewport_cmd(egui::ViewportCommand::Visible(true));
+            }
+        }
         self.pump_thumbs(ctx);
     }
 
@@ -479,6 +511,7 @@ impl AppState {
     }
 
     pub fn ui(&mut self, ui: &mut Ui) {
+        self.drawn += 1;
         let tokens = self.tokens;
         theme::apply(ui.ctx());
         self.take_dropped_folders(ui);
@@ -784,15 +817,19 @@ impl AppState {
         let enter_pressed =
             self.path_focused && !path.is_empty() && ui.input(|i| i.key_pressed(egui::Key::Enter));
         let wants_add = add.clicked() || enter_pressed;
-        if wants_add && !path.is_empty() && self.run("folder.add", json!({"path": path})) {
-            self.add_path.clear();
-        }
-        ui.add_space(space::CONTROL_INLINE);
-        // Typing a path is enough, but nobody should have to remember paths: this opens the
-        // directory browser on the folder above the one being viewed.
-        if widgets::control_button(ui, tokens, "button:browse-folder", "Browse…", false).clicked()
-        {
-            self.browser = Some(Browser::start_at(self.lib.folder()));
+        if wants_add {
+            // An empty field means "I don't have a path to type", which is exactly when someone
+            // wants to *pick* a folder. A button that does nothing in that case is what this
+            // replaced: with nothing typed it opens the browser, with a path typed it adds that
+            // path. Enter keeps submitting the field only, so pressing Enter in the grid never
+            // pops a window.
+            if path.is_empty() {
+                if self.browser.is_none() {
+                    self.browser = Some(Browser::start_at(self.lib.folder()));
+                }
+            } else if self.run("folder.add", json!({"path": path})) {
+                self.add_path.clear();
+            }
         }
         ui.add_space(space::CONTROL_INLINE);
         if widgets::control_button(ui, tokens, "button:remove-folder", "Remove folder", false)

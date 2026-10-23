@@ -140,7 +140,8 @@ fn browse_opens_the_browser_on_the_directory_above_the_library() {
     h.run();
 
     assert!(state.borrow().browser_path().is_none(), "closed to start");
-    click(&mut h, "Browse…");
+    // Nothing typed: the button picks instead of doing nothing.
+    click(&mut h, "Add folder");
     h.run();
 
     assert_eq!(
@@ -168,6 +169,29 @@ fn browse_opens_the_browser_on_the_directory_above_the_library() {
         !drawn.iter().any(|id| id.starts_with("dir:loose")),
         "a file is never offered as a folder"
     );
+}
+
+#[test]
+fn a_typed_path_is_added_by_the_same_button_and_opens_no_browser() {
+    let t = tree("typed");
+    let state = Rc::new(RefCell::new(AppState::new(t.library.clone())));
+    state.borrow_mut().add_path = t.new.display().to_string();
+    let mut h = harness(state.clone());
+    h.run();
+
+    click(&mut h, "Add folder");
+    h.run();
+
+    assert!(
+        state.borrow().browser_path().is_none(),
+        "a typed path is added directly: no window appears"
+    );
+    assert_eq!(
+        folder_names(&state.borrow()),
+        vec!["library".to_string(), "albums".to_string()],
+        "the typed folder joined the list"
+    );
+    assert!(state.borrow().add_path.is_empty(), "and the field cleared");
 }
 
 #[test]
@@ -430,7 +454,7 @@ fn browser_ids_only_exist_while_the_browser_is_open() {
 
     let closed = ids(&state.borrow());
     assert!(
-        closed.iter().any(|id| id == "button:browse-folder"),
+        closed.iter().any(|id| id == "button:add-folder"),
         "the button that opens it is always on screen: {closed:?}"
     );
     for prefix in ["dir:", "button:browser-", "panel:browser", "browser:scroll"] {
@@ -440,7 +464,7 @@ fn browser_ids_only_exist_while_the_browser_is_open() {
         );
     }
 
-    click(&mut h, "Browse…");
+    click(&mut h, "Add folder");
     h.run();
     let open = ids(&state.borrow());
     assert!(

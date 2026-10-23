@@ -164,7 +164,7 @@ radius 分佈：5（39 次）、4（28）、6（22）、1（14）、10（4）、
 14. **`ui.cursor()` 的 rect 高度是無限的**：它指「下一個控件的起點」，在垂直排版裡沒有下界。拿它註冊
     `info:browser-path` 會得到 `[[527,224]-[867,inf]]`，控制通道點下去就點到不存在的地方。用控件自己的
     `Response::rect`（`browser.rs`）。
-15. **`control_button(..., active)` 是 accent 狀態**：把 `button:browse-folder` 傳 `true` 之後，Q02 的
+15. **`control_button(..., primary)` 是 accent 狀態**：把 `button:add-folder` 無條件傳 `true` 之後，Q02 的
     「未選取時畫面不該有 accent」斷言立刻紅 — 那條斷言就是為了抓這個。主操作（`Scan`）可以用 accent，
     常駐控件不行。
 16. **eframe 對不可見視窗不跑 pass**：`ui.screenshot`（`ViewportCommand::Screenshot`）要由 pass 執行，而本機 Xwayland（mutter）把視窗標為不可見，所以請求會逾時（`request_nudged` 每 120ms `request_repaint`、5s 回報原因，`main.rs` 另有 300ms 心跳）。自動化渲染改用 `harness.render()` 讀真實像素。
@@ -189,10 +189,11 @@ radius 分佈：5（39 次）、4（28）、6（22）、1（14）、10（4）、
 - 關掉詳細檢視會連 zoom 一起清掉，下一張從 Fit 開始。
 - 影片（F16 尚未實作）沒有 preview：畫布仍註冊 `canvas:detail`，控制列仍可驅動，圖片區顯示 `No preview available`。
 
-## Add Folder 瀏覽器（`button:browse-folder`）
+## Add Folder 瀏覽器（`button:add-folder` 在路徑欄為空時）
 
-原型只有「Add Folder」輸入框與兩個按鈕；打路徑對人太難，所以加了一顆 `button:browse-folder` 開一個
-懸浮視窗。**這是對原型的增補**，不是原型裡的畫面，記錄在此以免日後被當成設計漂移。
+原型只有「Add Folder」輸入框與兩個按鈕。`button:add-folder` 現在有兩種行為：**路徑欄有內容就加入該
+路徑；空的就開一個目錄瀏覽器懸浮視窗**。空的時候什麼都不做是原本的做法，結果就是「按了沒反應」。
+瀏覽器畫面本身**不是原型裡的畫面**，記錄在此以免日後被當成設計漂移。
 
 | 元件 | 幾何（實測） |
 |---|---|
@@ -209,7 +210,8 @@ radius 分佈：5（39 次）、4（28）、6（22）、1（14）、10（4）、
   每個目錄帶「它自己那一層有幾個媒體檔」，**不遞迴**（遞迴數一個大庫就是這張畫面最不能有的停頓）。
 - 一切變動仍走 `folder.add`：重複的目錄會被擋（`BadParam`）、`notice_text()` 顯示原因、**視窗保持開著**。
 - 起點是「目前資料夾的上一層」，資料庫沒有資料夾時用 `HOME`。
-- `Scan` 用 accent（主操作），`Browse…` 不用 accent — 未選取時畫面不該出現 accent（由 Q02 的像素斷言守著）。
+- `Scan` 用 accent（主操作）；`Add folder` 只有在路徑欄打了字才用 accent（表示「送出這條路徑」），
+  未選取且空欄時畫面不該出現 accent（由 Q02 的像素斷言守著）。
 - 拖曳資料夾走 `RawInput::dropped_files`（egui 0.36 是 `DroppedFileHandle`，不是 `Event::DropFiles`）；
   測試直接塞一個實作 `DroppedFile` 的結構，不需要 OS 拖曳。
 
@@ -282,7 +284,6 @@ sidebar:scroll
 button:rescan
 field:add-path
 button:add-folder
-button:browse-folder
 button:remove-folder
 folder:
 ```

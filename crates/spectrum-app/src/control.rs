@@ -123,6 +123,10 @@ pub fn handle(app: &mut AppState, ctx: Option<&Context>, req: &Request) -> Value
     let result = match req.method.as_str() {
         "ui.inspect" => ok(json!({
             "frame": app.frame,
+            // Logic ticks versus paint passes. `drawn < frame` means the window manager stopped
+            // asking for draws, so clicks cannot register.
+            "drawn": app.drawn,
+            "drawing": app.drawn == app.frame,
             "widgets": app.widgets.len(),
             "screen": ctx.map(|c| {
                 let r = c.viewport_rect();
